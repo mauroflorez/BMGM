@@ -6,7 +6,7 @@ BMGM (**Bayesian Mixed Graphical Model**) is an R package for **Bayesian inferen
 To install the package from **GitHub**, run:
 ```r
 install.packages("devtools") # If not installed
-devtools::install_github("your_github/BMGM")
+devtools::install_github("mauroflorez/BMGM")
 ```
 
 ## Quick Start

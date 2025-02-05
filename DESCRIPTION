@@ -1,0 +1,29 @@
+Package: BMGM
+Type: Package
+Title: Bayesian Mixed Graphical model for Inference on Mixed Data
+Version: 0.1.0
+Authors@R: c(
+    person(
+      "Mauro", "Florez",
+      email = "mf53@rice.edu",
+      role = c("aut", "cre")
+    )
+  )
+Description: Provides a Bayesian approach for estimating 
+    conditional independencies in mixed data, where variables can be continuous, 
+    discrete, categorical, or zero-inflated count data. The model employs a 
+    spike-and-slab prior for graph estimation and utilizes an MCMC algorithm 
+    with the Exchange Algorithm for posterior inference. The package is 
+    particularly suited for applications in healthcare, social sciences, 
+    and other fields involving mixed-type data with missing observations.
+License: GPL-3
+Encoding: UTF-8
+LazyData: true
+Depends: R (>= 3.5.0)
+Imports: MASS, armspp, gtools, stats, mnormt, mvtnorm, progress
+Suggests: 
+    testthat (>= 3.0.0),
+    knitr,
+    rmarkdown
+RoxygenNote: 7.3.1
+Config/testthat/edition: 3

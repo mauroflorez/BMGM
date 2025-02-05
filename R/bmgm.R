@@ -26,7 +26,7 @@
 #'   \item{post_theta}{Posterior samples of node parameters.}
 #'   \item{post_Z}{Posterior samples of edge indicators.}
 #'   \item{adj_Beta}{Estimated adjacency matrix for dependencies.}
-#'   \item{adj_Z}{Adjacency matrix for edge selection.}
+#'   \item{adj_G}{Adjacency matrix for edge selection.}
 #'   \item{lambda}{Estimated transformation parameter.}
 #' }
 #'
@@ -46,7 +46,7 @@
 #' fit <- bmgm(X, type, nburn = 500, nsample = 1000)
 #'
 #' # Print adjacency matrix
-#' print(fit$adj_Beta)
+#' print(fit$adj_G)
 #'
 bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
                    v_0 = 0.05, v_1 = 1, pi_beta, seed, context_spec = T,

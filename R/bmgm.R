@@ -65,7 +65,7 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
   p <- ncol(X)
 
   #Initial Imputation
-  R <- 1 - is.na(X)*1
+  R <- (!is.na(X))*1
   r_imp <- which(rowSums(R) < p)
   means <- colMeans(X, na.rm = T)
 
@@ -76,7 +76,7 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
                              "d" = round(means[s]),
                              "z" = round(means[s]),
                              "m" = names(which.max(table(X[, s]))))
-      X[, s][R[, s] == 0] <- impute_value
+      X[, s][R[, s] == 0] <- as.numeric(impute_value)
     }
   }
       #switch(type[s],

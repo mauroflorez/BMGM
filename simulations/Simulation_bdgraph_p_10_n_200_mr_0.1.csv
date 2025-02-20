@@ -1,0 +1,121 @@
+"","message","call"
+"1",missing value where TRUE/FALSE needed,if (stats::runif(1) < accept) {
+    theta_s <- theta_star
+    ac_theta[s] <- ac_theta[s] + 1
+}
+"2",missing value where TRUE/FALSE needed,if (stats::runif(1) < accept) {
+    theta_s <- theta_star
+    ac_theta[s] <- ac_theta[s] + 1
+}
+"3",missing value where TRUE/FALSE needed,if (stats::runif(1) < accept) {
+    theta_s <- theta_star
+    ac_theta[s] <- ac_theta[s] + 1
+}
+"4",missing value where TRUE/FALSE needed,if (stats::runif(1) < accept) {
+    theta_s <- theta_star
+    ac_theta[s] <- ac_theta[s] + 1
+}
+"5",missing value where TRUE/FALSE needed,if (stats::runif(1) < accept) {
+    theta_s <- theta_star
+    ac_theta[s] <- ac_theta[s] + 1
+}
+"6",missing value where TRUE/FALSE needed,if (stats::runif(1) < accept) {
+    theta_s <- theta_star
+    ac_theta[s] <- ac_theta[s] + 1
+}
+"7",missing value where TRUE/FALSE needed,if (stats::runif(1) < accept) {
+    theta_s <- theta_star
+    ac_theta[s] <- ac_theta[s] + 1
+}
+"8",missing value where TRUE/FALSE needed,if (stats::runif(1) < accept) {
+    theta_s <- theta_star
+    ac_theta[s] <- ac_theta[s] + 1
+}
+"9",missing value where TRUE/FALSE needed,if (stats::runif(1) < accept) {
+    theta_s <- theta_star
+    ac_theta[s] <- ac_theta[s] + 1
+}
+"10",missing value where TRUE/FALSE needed,if (stats::runif(1) < accept) {
+    theta_s <- theta_star
+    ac_theta[s] <- ac_theta[s] + 1
+}
+"11",missing value where TRUE/FALSE needed,if (stats::runif(1) < accept) {
+    theta_s <- theta_star
+    ac_theta[s] <- ac_theta[s] + 1
+}
+"12",missing value where TRUE/FALSE needed,if (stats::runif(1) < accept) {
+    theta_s <- theta_star
+    ac_theta[s] <- ac_theta[s] + 1
+}
+"13",missing value where TRUE/FALSE needed,if (stats::runif(1) < accept) {
+    theta_s <- theta_star
+    ac_theta[s] <- ac_theta[s] + 1
+}
+"14",missing value where TRUE/FALSE needed,if (stats::runif(1) < accept) {
+    theta_s[2] <- tau_proposal
+    ac_theta[s] <- ac_theta[s] + 1
+}
+"15",missing value where TRUE/FALSE needed,if (stats::runif(1) < accept) {
+    theta_s <- theta_star
+    ac_theta[s] <- ac_theta[s] + 1
+}
+"16",missing value where TRUE/FALSE needed,if (stats::runif(1) < accept) {
+    theta_s <- theta_star
+    ac_theta[s] <- ac_theta[s] + 1
+}
+"17",missing value where TRUE/FALSE needed,if (stats::runif(1) < accept) {
+    theta_s <- theta_star
+    ac_theta[s] <- ac_theta[s] + 1
+}
+"18",missing value where TRUE/FALSE needed,if (stats::runif(1) < accept) {
+    theta_s[2] <- tau_proposal
+    ac_theta[s] <- ac_theta[s] + 1
+}
+"19",missing value where TRUE/FALSE needed,if (stats::runif(1) < accept) {
+    theta_s <- theta_star
+    ac_theta[s] <- ac_theta[s] + 1
+}
+"20",missing value where TRUE/FALSE needed,if (stats::runif(1) < accept) {
+    theta_s <- theta_star
+    ac_theta[s] <- ac_theta[s] + 1
+}
+"21",missing value where TRUE/FALSE needed,if (stats::runif(1) < accept) {
+    theta_s[2] <- tau_proposal
+    ac_theta[s] <- ac_theta[s] + 1
+}
+"22",missing value where TRUE/FALSE needed,if (stats::runif(1) < accept) {
+    theta_s <- theta_star
+    ac_theta[s] <- ac_theta[s] + 1
+}
+"23",missing value where TRUE/FALSE needed,if (stats::runif(1) < accept) {
+    theta_s <- theta_star
+    ac_theta[s] <- ac_theta[s] + 1
+}
+"24",missing value where TRUE/FALSE needed,if (stats::runif(1) < accept) {
+    theta_s <- theta_star
+    ac_theta[s] <- ac_theta[s] + 1
+}
+"25",missing value where TRUE/FALSE needed,if (stats::runif(1) < accept) {
+    theta_s <- theta_star
+    ac_theta[s] <- ac_theta[s] + 1
+}
+"26",missing value where TRUE/FALSE needed,if (stats::runif(1) < accept) {
+    theta_s <- theta_star
+    ac_theta[s] <- ac_theta[s] + 1
+}
+"27",missing value where TRUE/FALSE needed,if (stats::runif(1) < accept) {
+    theta_s[2] <- tau_proposal
+    ac_theta[s] <- ac_theta[s] + 1
+}
+"28",missing value where TRUE/FALSE needed,if (stats::runif(1) < accept) {
+    theta_s <- theta_star
+    ac_theta[s] <- ac_theta[s] + 1
+}
+"29",missing value where TRUE/FALSE needed,if (stats::runif(1) < accept) {
+    theta_s <- theta_star
+    ac_theta[s] <- ac_theta[s] + 1
+}
+"30",missing value where TRUE/FALSE needed,if (stats::runif(1) < accept) {
+    theta_s <- theta_star
+    ac_theta[s] <- ac_theta[s] + 1
+}

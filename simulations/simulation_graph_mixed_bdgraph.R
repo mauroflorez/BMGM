@@ -7,7 +7,7 @@ require(BDgraph)
 require(foreach)
 
 
-devtools::install_github("mauroflorez/BMGM")
+#devtools::install_github("mauroflorez/BMGM")
 library(BMGM)
 
 ###### parallel
@@ -21,7 +21,7 @@ registerDoParallel(cl)
 #####------------------ Simulation Scenarios - To Change! -----------------#####
 
 p = 10 #p = 20
-n = 200 #1 cases: n = 200;
+n = 500 #1 cases: n = 200;
 miss_rate  = 0 #2 cases: miss_rate = 0.1, miss_rate =0
 
 ################################################################################
@@ -69,8 +69,10 @@ out <- foreach(i=1:nrep, .options.RNG=123, .errorhandling = "pass") %dorng% {
                     MARGIN = c(1, 2), FUN = mean)
 
   prop.huge <- adj.huge*sgn.huge
-
   prop.huge <- prop.huge[upper.tri(prop.huge)]
+
+  est.huge <- huge::huge.select(fit.huge)$refit
+  est.huge <- est.huge[upper.tri(est.huge)]
 
   #BDgraph
 
@@ -80,18 +82,21 @@ out <- foreach(i=1:nrep, .options.RNG=123, .errorhandling = "pass") %dorng% {
   signs.bd <- sign(fit.bdgraph$K_hat)
 
   prop.bdgraph <- adj.bd*signs.bd
-
   prop.bdgraph <- prop.bdgraph[upper.tri(prop.bdgraph)]
+
+  est.bdgraph <- summary(fit.bdgraph)$selected_g
+  est.bdgraph <- est.bdgraph[upper.tri(est.bdgraph)]
 
   #MGM
   fit.mgm <- mgm::mgm(X_comp, type2, level2, threshold = "none")
   adj.mgm <- fit.mgm$pairwise$wadj
   sgn.mgm <- fit.mgm$pairwise$signs
   sgn.mgm[is.na(sgn.mgm)] <- 0
-
   prop.mgm <- adj.mgm*sgn.mgm
-
   prop.mgm <- prop.mgm[upper.tri(prop.mgm)]
+
+  est.mgm <- (mgm::mgm(X_comp, type2, level2, threshold = "LW")$pairwise$wadj > 0)*1
+  est.mgm <- est.mgm[upper.tri(est.mgm)]
 
   #OURS
 
@@ -102,8 +107,9 @@ out <- foreach(i=1:nrep, .options.RNG=123, .errorhandling = "pass") %dorng% {
   prop.our <- c(adj.fit*sgn.fit)
   names(prop.our) <- NULL
 
-  est.our <- (fit.our$adj_Z)*1
+  est.our <- (fit.our$adj_G)*1
   est.our <- est.our[upper.tri(est.our)]
+
 
   true <- true[upper.tri(true)]
 
@@ -113,3 +119,4 @@ out <- foreach(i=1:nrep, .options.RNG=123, .errorhandling = "pass") %dorng% {
 mat_ris <- do.call(rbind, out)
 nomefile <- file.path(paste0("Simulation_bdgraph_p_",p,"_n_",n,"_mr_", miss_rate,".csv"))
 write.csv(mat_ris, nomefile)
+stopCluster(cl)

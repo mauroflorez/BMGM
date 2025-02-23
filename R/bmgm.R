@@ -49,7 +49,7 @@
 #' print(fit$adj_G)
 #'
 bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
-                   v_0 = 0.05, v_1 = 1, pi_beta, seed, context_spec = T,
+                   v_0 = 0.01, v_1 = 1, pi_beta, seed, context_spec = T,
                    bfdr = 0.05, cont = FALSE,...){
 
   if(!missing(seed)) set.seed(seed)
@@ -67,14 +67,13 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
   #Initial Imputation
   R <- (!is.na(X))*1
   r_imp <- which(rowSums(R) < p)
-  means <- colMeans(X, na.rm = T)
 
   if(length(r_imp) > 0) {
     for(s in 1:p){
       impute_value <- switch(type[s],
-                             "c" = means[s],
-                             "d" = round(means[s]),
-                             "z" = round(means[s]),
+                             "c" = mean(X[,s]),
+                             "d" = round(mean(X[,s])),
+                             "z" = round(mean(X[,s])),
                              "m" = names(which.max(table(X[, s]))))
       X[, s][R[, s] == 0] <- as.numeric(impute_value)
     }
@@ -95,7 +94,7 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
   #X[,s][R[,s] == 0] <- mean
 
   #Centering of continuous
-  X[, type == "c"] <- scale(X[, type == "c"], center = means[type == "c"], scale = F)
+  X[, type == "c"] <- scale(X[, type == "c"], center = TRUE, scale = F)
 
   #Spike and slab
   log_prior_beta <- function(Beta, pi_beta, v0, v1){
@@ -420,13 +419,14 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
       #Update column l
       Omega_inv <- crossprod(OmegatempiU)
 
-      Ci <- eigen((var(F_X[,var_names[l]]) + 1)*n*Omega_inv + diag(ifelse(G[l,-l] == 0, 1/v_0, 1/v_1)))
+      #Ci <- eigen((var(F_X[,var_names[l]]) + 1)*n*Omega_inv + diag(ifelse(G[l,-l] == 0, 1/v_0, 1/v_1)))
+      Ci <- eigen((S[l,l] + 1)*Omega_inv + diag(ifelse(G[l,-l] == 0, 1/v_0, 1/v_1)))
       CiU <- t(Ci$vectors)/sqrt(abs(Ci$values))
       C_inv <- crossprod(CiU)
       #C_inv <- chol2inv(chol((S[l,l] + 1)*Omega_inv + diag(ifelse(G[l,-l] == 0, 1/v_0, 1/v_1))))
 
       #Proposal
-      mean_proposal <- -C_inv%*%mean ############!!!!!!!!!!!!!!!!! is a minus?
+      mean_proposal <- -C_inv%*%mean
       var_proposal <- C_inv
 
       Beta_proposal <- MASS::mvrnorm(1, mean_proposal, var_proposal)

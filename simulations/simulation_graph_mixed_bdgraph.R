@@ -21,7 +21,7 @@ registerDoParallel(cl)
 #####------------------ Simulation Scenarios - To Change! -----------------#####
 
 p = 10 #p = 20
-n = 500 #1 cases: n = 200;
+n = 200 #1 cases: n = 200;
 miss_rate  = 0 #2 cases: miss_rate = 0.1, miss_rate =0
 
 ################################################################################
@@ -100,7 +100,7 @@ out <- foreach(i=1:nrep, .options.RNG=123, .errorhandling = "pass") %dorng% {
 
   #OURS
 
-  fit.our <- BMGM::bmgm(X = X_NA, type = type, nburn = 10000, nsample = 10000, v_0 = 0.05, v_1 = 1, bfdr = 0.05)
+  fit.our <- BMGM::bmgm(X = X_NA, type = type, nburn = 10000, nsample = 40000, v_0 = 0.01, v_1 = 1, bfdr = 0.05)
   adj.fit <- colMeans(fit.our$post_G)
   sgn.fit <- -sign(colMeans(fit.our$post_Beta))
 

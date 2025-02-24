@@ -374,7 +374,7 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
                norm_consts <- rowSums(un_llk)
 
                un_llk_star <-  cbind(rep(exp(log(theta_star[1])),n),
-                                     (exp(apply(C_s, 1, function(x) log(theta_star[-1]) + x/se))))
+                                     (exp(apply(C_s, 1, function(x) log(theta_star[-1]) - x/se))))
                norm_consts_star <- rowSums(un_llk_star)
 
                llk  <- un_llk[cbind(1:nrow(C_s), cat)]/norm_consts

@@ -49,7 +49,7 @@
 #' print(fit$adj_G)
 #'
 bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
-                   v_0 = 0.01, v_1 = 1, pi_beta, seed, context_spec = T,
+                   v_0 = 0.05, v_1 = 1, pi_beta, seed, context_spec = T,
                    bfdr = 0.05, cont = FALSE,...){
 
   if(!missing(seed)) set.seed(seed)

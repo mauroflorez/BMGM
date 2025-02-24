@@ -35,15 +35,16 @@
 #' @examples
 #' # Simulated example data
 #' set.seed(123)
-#' X1 <- rnorm(100)
-#' X2 <- rpois(100, lambda = 5)
-#' X3 <- rnorm(100, mean = X2)
-#' X4 <- rpois(100, lambda = exp(X1))
+#' n <- 100
+#' X1 <- rpois(n, lambda = 3)
+#' X2 <- rnorm(n, mean = 5)
+#' X3 <- rnorm(n, mean = X2)
+#' X4 <- rnorm(n), mean = X1)
 #' X <- cbind(X1,X2,X3,X4)
-#' type <- c("c", "d", "c", "d")
+#' type <- c("d", "c", "c", "c")
 #'
 #' # Fit Bayesian Mixed Graphical Model
-#' fit <- bmgm(X, type, nburn = 500, nsample = 1000)
+#' fit <- bmgm(X, type, nburn = 1000, nsample = 1000)
 #'
 #' # Print adjacency matrix
 #' print(fit$adj_G)

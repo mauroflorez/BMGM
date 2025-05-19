@@ -44,7 +44,7 @@
 #' type <- c("d", "c", "c", "c")
 #'
 #' # Fit Bayesian Mixed Graphical Model
-#' fit <- bmgm(X, type, nburn = 1000, nsample = 1000)
+#' fit <- bmgm(X, type, nburn = 1000, nsample = 2000)
 #'
 #' # Print adjacency matrix
 #' print(fit$adj_G)
@@ -198,7 +198,7 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
   post_G <- matrix(nrow = nburn+nsample, ncol = q*(q-1)/2)
   post_imputation <- list()
   post_theta <- list()
-
+  m_update = 100
   for(s in 1:p){
     post_theta[[s]] <- switch(type[s],
                               'c' = matrix(nrow = nburn+nsample, ncol = 2),
@@ -415,17 +415,13 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
       diag(Omega) <- pmax(pdxid[-l], 1e-6)
       Omegai <- eigen(Omega)
       OmegatempiU <- t(Omegai$vectors)/sqrt(abs(Omegai$values))
-      #OmegaiU <- Omegai$vectors
-      #OmegaiD <- Omegai$values
 
       #Update column l
       Omega_inv <- crossprod(OmegatempiU)
 
-      #Ci <- eigen((var(F_X[,var_names[l]]) + 1)*n*Omega_inv + diag(ifelse(G[l,-l] == 0, 1/v_0, 1/v_1)))
       Ci <- eigen((S[l,l] + 1)*Omega_inv + diag(ifelse(G[l,-l] == 0, 1/v_0, 1/v_1)))
       CiU <- t(Ci$vectors)/sqrt(abs(Ci$values))
       C_inv <- crossprod(CiU)
-      #C_inv <- chol2inv(chol((S[l,l] + 1)*Omega_inv + diag(ifelse(G[l,-l] == 0, 1/v_0, 1/v_1))))
 
       #Proposal
       mean_proposal <- -C_inv%*%mean
@@ -482,7 +478,7 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
                tau = theta_s[2]
                log_Z_s <- sum(mu*tau*C_s - C_s^2/(2*tau))
                log_Z_star <- sum(mu*tau*C_star - C_star^2/(2*tau))
-               log_dif_norm = log_Z_s - log_Z_star #<- sum(mu*tau*(C_s - C_star) + 1/(2*tau)*(C_s^2 - C_star^2))
+               log_dif_norm = log_Z_s - log_Z_star
              },
              'z' = {
                param_s <- cbind('p' = rep(theta_s[1], n),
@@ -516,7 +512,7 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
                log_dif_norm <- log_Z_s - log_Z_star
              })
 
-      log_ar <- log_dif_llk + log_dif_priors + log_dif_norm #+ log_dif_prop
+      log_ar <- log_dif_llk + log_dif_priors + log_dif_norm
 
       accept <- min(1, exp(log_ar))
 
@@ -543,15 +539,11 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
     post_Beta[m,] <- Beta[upper.tri(Beta)]
     post_G[m,] <- G_vector
 
-
     #######################=== Adjust rates ===##############################
 
-    if((m%%100)==0){# & m < nburn){
+    if((m%%m_update)==0){
       ar_beta <- ac_Beta / m
-
       ar_theta <- ac_theta / m
-
-      #ar_beta_m <- (ac_Beta - ac_anterior)/100
 
       h_beta[ar_beta < .2] <- h_beta[ar_beta < .2]/2
       h_beta[ar_beta > .6] <- h_beta[ar_beta > .6]*2
@@ -582,15 +574,9 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
           }
         }
 
-        # Then apply rounding for discrete, zero-inflated
         X[i, type %in% c("d", "z") & R[i,] == 0] <- round(X[i, type %in% c("d", "z") & R[i,] == 0])
-
-        # Finally recenter continuous variables
-        # not longer necessary as centering is done prior
-        #X[i, type == "c" & R[i,] == 0] <- X[i, type == "c" & R[i,] == 0] - means[type == "c" & R[i,] == 0]
       }
-
-      post_imputation[[m/100]] <- X
+      post_imputation[[m/m_update]] <- X
 
       split <- split_X_cat(X, type)
       X_design <- split$matrix
@@ -600,9 +586,6 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
 
       std_err <- apply(F_X, 2, sd)
       F_scaled <- scale(F_X, center = F, scale = std_err)
-
-      #S <- crossprod(F_centered)
-      #pdxid <- diag(solve(var(F_scaled)))
     }
     pb$tick()
   }
@@ -612,8 +595,8 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
   cat_graph <- categories_graph(q, p, var_names, ce_graph$ce_esti_Z,
                                 ce_graph$ce_esti_Beta, categories)
 
-  fit <- list(post_Beta = post_Beta, post_theta = post_theta, post_G = post_G,
-              adj_Beta = cat_graph$Adj_Beta, adj_G = (cat_graph$Adj_Z!=0)*1,
+  fit <- list(post_Beta = -post_Beta, post_theta = post_theta, post_G = post_G,
+              adj_Beta = -cat_graph$Adj_Beta, adj_G = (cat_graph$Adj_Z!=0)*1,
               lambda = lambda, std = std_err, X = X_input, type = type)
 
   if(context_spec == T & any(type == "m")){

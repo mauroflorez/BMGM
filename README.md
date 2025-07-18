@@ -1,7 +1,7 @@
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# BMGM: Bayesian Mixed Graphical Model 📊
+# BMGM: Bayesian Mixed Graphical Model 📊 <img src="man/figures/logo.png" align="right" width="100"/>
 
 BMGM (**Bayesian Mixed Graphical Model**) is an R package for **Bayesian
 inference on mixed graphical models**, allowing the estimation of

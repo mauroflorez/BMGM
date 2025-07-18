@@ -13,6 +13,10 @@ knitr::opts_chunk$set(
 )
 ```
 
+<p align="center">
+  <img src="man/BMGM_sticker.png" width="200"/>
+</p>
+
 # BMGM: Bayesian Mixed Graphical Model 📊
 
 BMGM (**Bayesian Mixed Graphical Model**) is an R package for **Bayesian inference on mixed graphical models**, allowing the estimation of **conditional independencies** between **continuous, discrete, categorical, and zero-inflated count** data. The package employs **MCMC sampling** and **spike-and-slab priors** for structure learning and can handle **missing data** during inference.

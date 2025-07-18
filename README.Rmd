@@ -14,7 +14,7 @@ knitr::opts_chunk$set(
 ```
 
 <p align="center">
-  <img src="man/figures/BMGM_sticker.png" width="200"/>
+  <img src="man/BMGM_sticker.png" width="200"/>
 </p>
 
 # BMGM: Bayesian Mixed Graphical Model 📊

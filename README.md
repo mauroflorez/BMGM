@@ -1,19 +1,12 @@
-
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
-# BMGM: Bayesian Mixed Graphical Model <img src="images/logo.png" width="88" height="103" />
+# BMGM: Bayesian Mixed Graphical Model
 
-BMGM (**Bayesian Mixed Graphical Model**) is an R package for **Bayesian
-inference on mixed graphical models**, allowing the estimation of
-**conditional independencies** between **continuous, discrete,
-categorical, and zero-inflated count** data. The package employs **MCMC
-sampling** and **spike-and-slab priors** for structure learning and can
-handle **missing data** during inference.
+BMGM (**Bayesian Mixed Graphical Model**) is an R package for **Bayesian inference on mixed graphical models**, allowing the estimation of **conditional independencies** between **continuous, discrete, categorical, and zero-inflated count** data. The package employs **MCMC sampling** and **spike-and-slab priors** for structure learning and can handle **missing data** during inference.
 
 ## Installation
 
-You can install the development version of BMGM from
-[GitHub](https://github.com/) with:
+You can install the development version of BMGM from [GitHub](https://github.com/) with:
 
 ``` r
 # install.packages("devtools")
@@ -35,7 +28,10 @@ fit$adj_G
 
 ## 📖 Main Functions
 
-- `bmgm()`: Fit the Bayesian Mixed Graphical Model  
-- `find_lambda()`: Optimize transformation parameter (Arkaprava &
-  Dunson, 2020)
-- `F_transformation()`: Apply transformation for mixed data
+-   `bmgm()`: Fit the Bayesian Mixed Graphical Model\
+-   `find_lambda()`: Optimize transformation parameter (Arkaprava & Dunson, 2020)
+-   `F_transformation()`: Apply transformation for mixed data
+
+## 📄 Reference
+
+Florez, M., Gottard, A., McAdams, C., Guindani, M., & Vannucci, M. (2025). *A Bayesian Approach for Inference on Mixed Graphical Models.* Revised at *Bayesian Analysis*. arXiv preprint available at: [arXiv:2505.15464](https://arxiv.org/abs/2505.15464)

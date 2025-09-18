@@ -13,6 +13,10 @@ You can install the development version of BMGM from [GitHub](https://github.com
 devtools::install_github("mauroflorez/BMGM")
 ```
 
+## Example
+
+For a more detailed example, see: https://mauroflorez.github.io/BMGM/articles/Example_Analysis.html
+
 ## Quick Start
 
 ``` r

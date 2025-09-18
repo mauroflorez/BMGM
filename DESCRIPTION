@@ -25,5 +25,5 @@ Suggests:
     testthat (>= 3.0.0),
     knitr,
     rmarkdown
-RoxygenNote: 7.3.2.9000
+RoxygenNote: 7.3.3
 Config/testthat/edition: 3

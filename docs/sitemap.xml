@@ -1,45 +1,17 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-  <url>
-    <loc>/404.html</loc>
-  </url>
-  <url>
-    <loc>/articles/Example_Analysis.html</loc>
-  </url>
-  <url>
-    <loc>/articles/index.html</loc>
-  </url>
-  <url>
-    <loc>/authors.html</loc>
-  </url>
-  <url>
-    <loc>/index.html</loc>
-  </url>
-  <url>
-    <loc>/reference/bmgm.html</loc>
-  </url>
-  <url>
-    <loc>/reference/categories_graph.html</loc>
-  </url>
-  <url>
-    <loc>/reference/context_spec_graph.html</loc>
-  </url>
-  <url>
-    <loc>/reference/find_lambda.html</loc>
-  </url>
-  <url>
-    <loc>/reference/F_transformation.html</loc>
-  </url>
-  <url>
-    <loc>/reference/get_names_graph.html</loc>
-  </url>
-  <url>
-    <loc>/reference/index.html</loc>
-  </url>
-  <url>
-    <loc>/reference/sampler_bmgm.html</loc>
-  </url>
-  <url>
-    <loc>/reference/split_X_cat.html</loc>
-  </url>
+<urlset xmlns = 'http://www.sitemaps.org/schemas/sitemap/0.9'>
+<url><loc>/404.html</loc></url>
+<url><loc>/articles/Example_Analysis.html</loc></url>
+<url><loc>/articles/index.html</loc></url>
+<url><loc>/authors.html</loc></url>
+<url><loc>/index.html</loc></url>
+<url><loc>/reference/F_transformation.html</loc></url>
+<url><loc>/reference/bmgm.html</loc></url>
+<url><loc>/reference/categories_graph.html</loc></url>
+<url><loc>/reference/context_spec_graph.html</loc></url>
+<url><loc>/reference/find_lambda.html</loc></url>
+<url><loc>/reference/get_names_graph.html</loc></url>
+<url><loc>/reference/index.html</loc></url>
+<url><loc>/reference/sampler_bmgm.html</loc></url>
+<url><loc>/reference/split_X_cat.html</loc></url>
 </urlset>
+

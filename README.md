@@ -1,3 +1,8 @@
+---
+editor_options: 
+  markdown: 
+    wrap: 72
+---
 
 <!-- README.md is generated from README.Rmd. Please edit that file -->
 
@@ -9,6 +14,12 @@ inference on mixed graphical models**, allowing the estimation of
 categorical, and zero-inflated count** data. The package employs **MCMC
 sampling** and **spike-and-slab priors** for structure learning and can
 handle **missing data** during inference.
+
+📄 The methodology is described in the paper:\
+Florez, M., Gottard, A., McAdams, C., Guindani, M., & Vannucci, M.
+(2025). *A Bayesian Approach for Inference on Mixed Graphical Models.*
+Revised at *Bayesian Analysis*. arXiv preprint available at:
+[arXiv:2505.15464](https://arxiv.org/abs/2505.15464)
 
 ## Installation
 
@@ -35,7 +46,7 @@ fit$adj_G
 
 ## 📖 Main Functions
 
-- `bmgm()`: Fit the Bayesian Mixed Graphical Model  
-- `find_lambda()`: Optimize transformation parameter (Arkaprava &
-  Dunson, 2020)
-- `F_transformation()`: Apply transformation for mixed data
+-   `bmgm()`: Fit the Bayesian Mixed Graphical Model\
+-   `find_lambda()`: Optimize transformation parameter (Arkaprava &
+    Dunson, 2020)
+-   `F_transformation()`: Apply transformation for mixed data

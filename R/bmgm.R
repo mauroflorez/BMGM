@@ -372,11 +372,13 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
                C_s <- F_scaled[,-cols]%*%Beta[-cols,cols]
 
                un_llk <- cbind(rep(exp(log(theta_s[1])),n),
-                               exp(apply(C_s, 1, function(x) log(theta_s[-1]) - x/se)))
+                               exp(t(apply(C_s, 1, function(x) log(theta_s[-1]) - x/se))))
+
+               
                norm_consts <- rowSums(un_llk)
 
                un_llk_star <-  cbind(rep(exp(log(theta_star[1])),n),
-                                     (exp(apply(C_s, 1, function(x) log(theta_star[-1]) - x/se))))
+                                     (exp(t(apply(C_s, 1, function(x) log(theta_star[-1]) - x/se)))))
                norm_consts_star <- rowSums(un_llk_star)
 
                llk  <- un_llk[cbind(1:nrow(C_s), cat)]/norm_consts
@@ -503,11 +505,11 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
                C_star <- F_scaled[,-cols]%*%Beta_star[-cols,cols]
 
                un_llk <- cbind(rep(exp(log(theta_s[1])),n),
-                               exp(apply(C_s, 1, function(x) log(theta_s[-1]) - x/se)))
+                               exp(t(apply(C_s, 1, function(x) log(theta_s[-1]) - x/se))))
                log_Z_s <- sum(log(rowSums(un_llk)))
 
                un_llk_star <-  cbind(rep(exp(log(theta_s[1])),n),
-                                     exp(apply(C_star, 1, function(x) log(theta_s[-1]) - x/se)))
+                                     exp(t(apply(C_star, 1, function(x) log(theta_s[-1]) - x/se))))
                log_Z_star <- sum(log(rowSums(un_llk_star)))
                log_dif_norm <- log_Z_s - log_Z_star
              })

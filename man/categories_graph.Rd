@@ -28,3 +28,4 @@ A list with:
 This function converts a graph estimated from categorical variables
 into a general adjacency matrix representation.
 }
+\keyword{internal}

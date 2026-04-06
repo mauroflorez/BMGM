@@ -21,3 +21,4 @@ A list of graph names and edge indicators
 \description{
 Get Names for Graph
 }
+\keyword{internal}

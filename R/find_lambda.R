@@ -7,7 +7,7 @@
 find_lambda <- function(X, type) {
   d <- which(type != "m")
   X_d <- X[, d]
-  p0 <- max(X_d, na.rm = T)
+  p0 <- max(X_d, na.rm = TRUE)
   p_v <- seq(0, 2 * p0, by = 0.1)
 
   errors <- sapply(p_v, function(i) {

@@ -23,3 +23,4 @@ A matrix of transformed data.
 Performs transformation of input data based on its type.
 Used for continuous, discrete, and zero-inflated data in Mixed Graphical Models.
 }
+\keyword{internal}

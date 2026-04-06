@@ -17,13 +17,16 @@ Description: Provides a Bayesian approach for estimating
     in healthcare, social sciences, and other fields involving mixed-type data, even 
     with missing observations.
 License: GPL-3
+URL: https://github.com/mauroflorez/BMGM
+BugReports: https://github.com/mauroflorez/BMGM/issues
 Encoding: UTF-8
 LazyData: false
 Depends: R (>= 3.5.0)
 Imports: MASS, armspp, gtools, stats, mnormt, mvtnorm, progress
-Suggests: 
+Suggests:
     testthat (>= 3.0.0),
     knitr,
     rmarkdown
+VignetteBuilder: knitr
 RoxygenNote: 7.3.3
 Config/testthat/edition: 3

@@ -49,7 +49,8 @@ sampler_bmgm <- function(n = 1, Beta, theta, type, categories, lambda,
     # use switch to evaluate the type and return a vector
     if(type == "m"){
       x_new <- rep(0, cat)
-      x_new[x] <- 1
+      # Category 1 is the reference (all zeros), categories 2..K map to dummies 1..(K-1)
+      if(x > 1) x_new[x - 1] <- 1
       x_new
     } else x
   }
@@ -153,7 +154,7 @@ sampler_bmgm <- function(n = 1, Beta, theta, type, categories, lambda,
                }
 
                x_star_s <- round(armspp::arms(1, log_density_z, 0, 1000, metropolis = TRUE))
-               zero <- sample(c(0,1), 1, replace = T, prob = c(tta[1], 1 - tta[1]))
+               zero <- sample(c(0,1), 1, replace = TRUE, prob = c(tta[1], 1 - tta[1]))
 
                x_star <- x_star_s*zero
                x[m,i] <- x_star
@@ -168,9 +169,9 @@ sampler_bmgm <- function(n = 1, Beta, theta, type, categories, lambda,
                for(c in 1:ncat){
                  lik[c] <- exp(log(tta[c]) - edge_pot[c]/se[c])
                }
-               cat_sam <- sample(0:(ncat-1), 1, prob = lik/sum(lik))
+               cat_sam <- sample(1:ncat, 1, prob = lik/sum(lik))
                x[m,i] <- cat_sam
-               x_star[cat_sam] <- 1
+               if(cat_sam > 1) x_star[cat_sam - 1] <- 1
              })
 
       x_sam[m,l] <- x_star

@@ -18,6 +18,7 @@
 #' @param context_spec Logical, whether to compute the context-specific adjacency matrix. Default is TRUE.
 #' @param bfdr Bayesian False Discovery Rate threshold for edge selection. Default is 0.05.
 #' @param cont Logical, whether to transform continuous variables. Default is FALSE.
+#' @param verbose Logical, whether to display a progress bar during MCMC sampling. Default is TRUE.
 #' @param ... Additional arguments.
 #'
 #' @return A list containing:
@@ -43,20 +44,29 @@
 #' X <- cbind(X1,X2,X3,X4)
 #' type <- c("d", "c", "c", "c")
 #'
+#' \donttest{
 #' # Fit Bayesian Mixed Graphical Model
 #' fit <- bmgm(X, type, nburn = 1000, nsample = 2000)
 #'
 #' # Print adjacency matrix
 #' print(fit$adj_G)
+#' }
 #'
 bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
-                   v_0 = 0.05, v_1 = 1, pi_beta, seed, context_spec = T,
-                   bfdr = 0.05, cont = FALSE,...){
+                   v_0 = 0.05, v_1 = 1, pi_beta, seed, context_spec = TRUE,
+                   bfdr = 0.05, cont = FALSE, verbose = TRUE,...){
 
   if(!missing(seed)) set.seed(seed)
 
   if(missing(type)){
     stop("Error: type of variables is missing")
+  }
+
+  valid_types <- c("c", "d", "z", "m")
+  invalid <- setdiff(type, valid_types)
+  if(length(invalid) > 0){
+    stop("Invalid variable type(s): ", paste(invalid, collapse = ", "),
+         ". type must be one of 'c' (continuous), 'd' (discrete), 'z' (zero-inflated), 'm' (categorical).")
   }
 
   X_input <- X
@@ -68,7 +78,7 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
   #Initial Imputation
   R <- 1 - is.na(X)*1
   r_imp <- which(rowSums(R) < p)
-  means <- colMeans(X, na.rm = T)
+  means <- colMeans(X, na.rm = TRUE)
 
   if(length(r_imp) > 0) {
     for(s in 1:p){
@@ -96,7 +106,7 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
   #X[,s][R[,s] == 0] <- mean
 
   #Centering of continuous
-  X[, type == "c"] <- scale(X[, type == "c"], center = means[type == "c"], scale = F)
+  X[, type == "c"] <- scale(X[, type == "c"], center = means[type == "c"], scale = FALSE)
 
   #Spike and slab
   log_prior_beta <- function(Beta, pi_beta, v0, v1){
@@ -133,10 +143,10 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
 
   F_X <- F_transformation(X = X_design, type = type_q, parameter = lambda, cont)
   std_err <- apply(F_X, 2, sd)
-  F_scaled <- scale(F_X, center = F, scale = std_err)
+  F_scaled <- scale(F_X, center = FALSE, scale = std_err)
 
   #Beta
-  F_centered <- scale(F_scaled, center = T, scale = F)
+  F_centered <- scale(F_scaled, center = TRUE, scale = FALSE)
   S <- crossprod(F_centered)
   pdxid <- diag(solve(var(F_scaled)))
 
@@ -158,7 +168,7 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
 
   ##### Priors for Beta / Now as inputs
 
-  if(missing(pi_beta)) pi_beta <- 2/(p-1)
+  if(missing(pi_beta)) pi_beta <- 2/(q-1)
 
   Beta <- diag(pdxid)
   G <- diag(q) - diag(q)
@@ -229,9 +239,11 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
     log(apply(parameters, 1, function(x) sum(un_llk(domain, theta = x))))
   }
 
-  pb <- progress::progress_bar$new(format = "Completing [:bar] :percent || ETA: :eta]",
-                                   total = nburn + nsample,
-                                   clear = FALSE)
+  if(verbose){
+    pb <- progress::progress_bar$new(format = "Completing [:bar] :percent || ETA: :eta]",
+                                     total = nburn + nsample,
+                                     clear = FALSE)
+  }
 
   for(m in 1:(nburn + nsample)){
     ######################## 1st Block - Updates Theta ###########################
@@ -272,8 +284,8 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
 
                C_s_2 = sum(c(F_scaled[,-s]%*%Beta[s,-s])^2)
 
-               ar <- dgamma(tau_proposal, shape = shape_post,rate = rate_post, log = T) -
-                 dgamma(tau, shape = shape_post, rate = rate_post, log = T) +
+               ar <- dgamma(tau_proposal, shape = shape_post,rate = rate_post, log = TRUE) -
+                 dgamma(tau, shape = shape_post, rate = rate_post, log = TRUE) +
                  C_s_2/2*(1/tau - 1/tau_proposal)
 
                accept <- min(1, exp(ar))
@@ -350,8 +362,8 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
                log_Z_s <- sum(log_norm_constant_Z(s, param_s))
                log_Z_star <- sum(log_norm_constant_Z(s, param_star))
 
-               log_ar <- dbeta(theta_star[1], post_s1, post_s2, log = T) - dbeta(theta_s[1], post_s1, post_s2, log = T) +
-                 dgamma(theta_star[2], post_alpha, post_beta, log = T) - dgamma(theta_s[2], post_alpha, post_beta, log = T) +
+               log_ar <- dbeta(theta_star[1], post_s1, post_s2, log = TRUE) - dbeta(theta_s[1], post_s1, post_s2, log = TRUE) +
+                 dgamma(theta_star[2], post_alpha, post_beta, log = TRUE) - dgamma(theta_s[2], post_alpha, post_beta, log = TRUE) +
                  log_Z_s - log_Z_star
 
                accept <- min(1, exp(log_ar))
@@ -373,8 +385,6 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
 
                un_llk <- cbind(rep(exp(log(theta_s[1])),n),
                                exp(t(apply(C_s, 1, function(x) log(theta_s[-1]) - x/se))))
-
-               
                norm_consts <- rowSums(un_llk)
 
                un_llk_star <-  cbind(rep(exp(log(theta_star[1])),n),
@@ -450,8 +460,8 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
         mean = mu - C_s/tau
         mean_star = mu - C_star/tau
 
-        log_dif_llk <- sum(dnorm(X[,l], mean = mean_star, sd = sqrt(1/tau), log = T)) -
-          sum(dnorm(X[,l], mean = mean, sd = sqrt(1/tau), log = T))
+        log_dif_llk <- sum(dnorm(X[,l], mean = mean_star, sd = sqrt(1/tau), log = TRUE)) -
+          sum(dnorm(X[,l], mean = mean, sd = sqrt(1/tau), log = TRUE))
       } else {
         log_dif_llk <- sum(F_scaled[,l]*C_star) - sum(F_scaled[,l]*C_s)
       }
@@ -459,8 +469,8 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
       log_dif_priors <- log_prior_beta(Beta_proposal, pi_beta, v_0, v_1) -
         log_prior_beta(Beta[l,-l], pi_beta, v_0, v_1)
 
-      log_dif_prop <- mvtnorm::dmvnorm(Beta[-l, l], mean_proposal, var_proposal, log = T) -
-        mvtnorm::dmvnorm(Beta_proposal, mean_proposal, var_proposal, log = T)
+      log_dif_prop <- mvtnorm::dmvnorm(Beta[-l, l], mean_proposal, var_proposal, log = TRUE) -
+        mvtnorm::dmvnorm(Beta_proposal, mean_proposal, var_proposal, log = TRUE)
 
       switch(type[var_names[l]],
              'd' = {
@@ -497,9 +507,10 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
              'm' = {
                Beta_star <- Beta
                Beta_star[l, -l] = Beta_star[-l,l] = Beta_proposal
-               cat = as.numeric(factor(X[,s]))
+               s_m = var_names[l]
+               cat = as.numeric(factor(X[,s_m]))
                #edge-potentials
-               cols = which(var_names == s)
+               cols = which(var_names == s_m)
                se <- std_err[cols]
                C_s <- F_scaled[,-cols]%*%Beta[-cols,cols]
                C_star <- F_scaled[,-cols]%*%Beta_star[-cols,cols]
@@ -587,9 +598,9 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
       F_X <- F_transformation(X = X_design, type = type_q, parameter = lambda, cont)
 
       std_err <- apply(F_X, 2, sd)
-      F_scaled <- scale(F_X, center = F, scale = std_err)
+      F_scaled <- scale(F_X, center = FALSE, scale = std_err)
     }
-    pb$tick()
+    if(verbose) pb$tick()
   }
 
   ce_graph <- context_spec_graph(q, post_Beta, post_G, tag, bfdr)
@@ -599,12 +610,14 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
 
   fit <- list(post_Beta = -post_Beta, post_theta = post_theta, post_G = post_G,
               adj_Beta = -cat_graph$Adj_Beta, adj_G = (cat_graph$Adj_Z!=0)*1,
-              lambda = lambda, std = std_err, X = X_input, type = type)
+              lambda = lambda, std = std_err, X = X_input, type = type,
+              nburn = nburn, nsample = nsample)
 
-  if(context_spec == T & any(type == "m")){
+  if(context_spec == TRUE && any(type == "m")){
     fit[["adj_Beta_ce"]] <- ce_graph$ce_esti_Beta
     fit[["adj_Z_ce"]] <- ce_graph$ce_esti_Z
   }
 
+  class(fit) <- "bmgm"
   return(fit)
 }

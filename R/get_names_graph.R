@@ -5,7 +5,7 @@
 #' @param categories Category sizes
 #' @param var_names Variable names
 #' @return A list of graph names and edge indicators
-#' @export
+#' @keywords internal
 get_names_graph <- function(p, q, categories, var_names) {
   tag <- NULL
   for (i in 1:p) {

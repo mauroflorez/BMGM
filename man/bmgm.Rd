@@ -14,9 +14,10 @@ bmgm(
   v_1 = 1,
   pi_beta,
   seed,
-  context_spec = T,
+  context_spec = TRUE,
   bfdr = 0.05,
   cont = FALSE,
+  verbose = TRUE,
   ...
 )
 }
@@ -45,6 +46,8 @@ Options: "c" (continuous), "d" (discrete), "z" (zero-inflated count), "m" (categ
 \item{bfdr}{Bayesian False Discovery Rate threshold for edge selection. Default is 0.05.}
 
 \item{cont}{Logical, whether to transform continuous variables. Default is FALSE.}
+
+\item{verbose}{Logical, whether to display a progress bar during MCMC sampling. Default is TRUE.}
 
 \item{...}{Additional arguments.}
 }
@@ -76,10 +79,12 @@ X4 <- rnorm(n, mean = X1)
 X <- cbind(X1,X2,X3,X4)
 type <- c("d", "c", "c", "c")
 
+\donttest{
 # Fit Bayesian Mixed Graphical Model
 fit <- bmgm(X, type, nburn = 1000, nsample = 2000)
 
 # Print adjacency matrix
 print(fit$adj_G)
+}
 
 }

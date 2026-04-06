@@ -3,7 +3,7 @@
 #' @param X Input matrix
 #' @param type Vector of variable types
 #' @return A list with design matrix and category sizes
-#' @export
+#' @keywords internal
 split_X_cat <- function(X, type) {
   p <- ncol(X)
   X_design <- do.call(cbind, lapply(1:p, function(s) {

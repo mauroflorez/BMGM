@@ -17,3 +17,4 @@ A list with design matrix and category sizes
 \description{
 Split Categorical Variables
 }
+\keyword{internal}

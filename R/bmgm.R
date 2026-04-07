@@ -381,14 +381,15 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
                #edge-potentials
                cols = which(var_names == s)
                se <- std_err[cols]
-               C_s <- F_scaled[,-cols]%*%Beta[-cols,cols]
+               C_s <- F_scaled[,-cols, drop = FALSE]%*%Beta[-cols, cols, drop = FALSE]
 
-               un_llk <- cbind(rep(exp(log(theta_s[1])),n),
-                               exp(t(apply(C_s, 1, function(x) log(theta_s[-1]) - x/se))))
+               log_theta_mat <- matrix(log(theta_s[-1]), nrow = n, ncol = length(theta_s) - 1, byrow = TRUE)
+               C_scaled <- sweep(C_s, 2, se, "/")
+               un_llk <- cbind(rep(theta_s[1], n), exp(log_theta_mat - C_scaled))
                norm_consts <- rowSums(un_llk)
 
-               un_llk_star <-  cbind(rep(exp(log(theta_star[1])),n),
-                                     (exp(t(apply(C_s, 1, function(x) log(theta_star[-1]) - x/se)))))
+               log_theta_star_mat <- matrix(log(theta_star[-1]), nrow = n, ncol = length(theta_star) - 1, byrow = TRUE)
+               un_llk_star <- cbind(rep(theta_star[1], n), exp(log_theta_star_mat - C_scaled))
                norm_consts_star <- rowSums(un_llk_star)
 
                llk  <- un_llk[cbind(1:nrow(C_s), cat)]/norm_consts
@@ -512,15 +513,14 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
                #edge-potentials
                cols = which(var_names == s_m)
                se <- std_err[cols]
-               C_s <- F_scaled[,-cols]%*%Beta[-cols,cols]
-               C_star <- F_scaled[,-cols]%*%Beta_star[-cols,cols]
+               C_s <- F_scaled[,-cols, drop = FALSE]%*%Beta[-cols, cols, drop = FALSE]
+               C_star <- F_scaled[,-cols, drop = FALSE]%*%Beta_star[-cols, cols, drop = FALSE]
 
-               un_llk <- cbind(rep(exp(log(theta_s[1])),n),
-                               exp(t(apply(C_s, 1, function(x) log(theta_s[-1]) - x/se))))
+               log_theta_mat <- matrix(log(theta_s[-1]), nrow = n, ncol = length(theta_s) - 1, byrow = TRUE)
+               un_llk <- cbind(rep(theta_s[1], n), exp(log_theta_mat - sweep(C_s, 2, se, "/")))
                log_Z_s <- sum(log(rowSums(un_llk)))
 
-               un_llk_star <-  cbind(rep(exp(log(theta_s[1])),n),
-                                     exp(t(apply(C_star, 1, function(x) log(theta_s[-1]) - x/se))))
+               un_llk_star <- cbind(rep(theta_s[1], n), exp(log_theta_mat - sweep(C_star, 2, se, "/")))
                log_Z_star <- sum(log(rowSums(un_llk_star)))
                log_dif_norm <- log_Z_s - log_Z_star
              })

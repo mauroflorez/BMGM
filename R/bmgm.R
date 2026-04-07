@@ -6,6 +6,8 @@
 #' algorithm for posterior inference.
 #'
 #' @param X A numeric matrix or data frame containing the data (mixed type variables).
+#'        Categorical variables (type "m") must be coded as positive integers (1, 2, ..., K),
+#'        where K is the number of categories. Category 1 is used as the reference level.
 #' @param type A character vector indicating the type of each variable.
 #'        Options: "c" (continuous), "d" (discrete), "z" (zero-inflated count), "m" (categorical).
 #' @param nburn Number of burn-in iterations for MCMC. Default is 1000.
@@ -67,6 +69,16 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
   if(length(invalid) > 0){
     stop("Invalid variable type(s): ", paste(invalid, collapse = ", "),
          ". type must be one of 'c' (continuous), 'd' (discrete), 'z' (zero-inflated), 'm' (categorical).")
+  }
+
+  # Check categorical variables are coded as positive integers (1, 2, ..., K)
+  for(j in which(type == "m")){
+    vals <- X[, j][!is.na(X[, j])]
+    if(any(vals < 1) || any(vals != round(vals))){
+      stop("Categorical variable in column ", j,
+           " must be coded as positive integers (1, 2, ..., K). Found values: ",
+           paste(sort(unique(vals)), collapse = ", "), ".")
+    }
   }
 
   X_input <- X

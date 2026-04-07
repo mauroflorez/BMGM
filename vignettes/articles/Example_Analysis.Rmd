@@ -28,11 +28,11 @@ library(qgraph)
 We select six variables from the NHANES dataset that are common in health studies:
 
 - **Age**: Continuous variable (in years)  
-- **Gender**: Binary variable (0 = male, 1 = female)  
+- **Gender**: Categorical variable (1 = male, 2 = female)
 - **SleepHrsNight**: Discrete variable (typical sleep per night)  
 - **BPSysAve**: Continuous variable (average systolic blood pressure)  
 - **BMI**: Continuous variable (Body Mass Index)  
-- **Diabetes**: Binary variable (0 = no, 1 = yes)  
+- **Diabetes**: Categorical variable (1 = no, 2 = yes)
 
 We filter rows with at most 2 missing values to allow for imputation during inference.
 
@@ -43,10 +43,10 @@ data <- NHANES %>%
   select(Age, Gender, SleepHrsNight, BPSysAve, BMI, Diabetes) %>%
   filter(rowSums(is.na(.)) <= 2, Age > 18) %>%
   mutate(
-    Gender = ifelse(Gender == "female", 1,
-             ifelse(Gender == "male", 0, NA)),
-    Diabetes = ifelse(Diabetes == "Yes", 1,
-               ifelse(Diabetes == "No", 0, NA))
+    Gender = ifelse(Gender == "female", 2,
+             ifelse(Gender == "male", 1, NA)),
+    Diabetes = ifelse(Diabetes == "Yes", 2,
+               ifelse(Diabetes == "No", 1, NA))
   ) %>%
   slice_sample(n = 300) %>%
   as.matrix()
@@ -55,7 +55,7 @@ data <- NHANES %>%
 Define the variable types:
 
 ```{r define-types}
-type <- c("c", "d", "d", "c", "c", "d")
+type <- c("c", "m", "d", "c", "c", "m")
 var_names <- c("Age", "Gender", "Sleep", "BP_sys", "BMI", "Diabetes")
 ```
 
@@ -87,22 +87,22 @@ qgraph(
 
 ## Interpretation
 
-- **BMI ↔ Diabetes**  
-  A **strong positive edge** indicates that BMI is highly conditionally associated with the presence of diabetes. This supports the well-established clinical link between higher body mass index and type 2 diabetes.
+- **Age ↔ BP_sys (Systolic Blood Pressure)**
+  A **positive conditional relationship** (0.71) reflects the expected pattern: as age increases, systolic blood pressure tends to increase, consistent with physiological changes over time.
 
-- **Age ↔ Diabetes**  
-  A **positive edge** suggests that age is positively associated with diabetes, even after adjusting for BMI and other variables.
+- **Age ↔ Diabetes**
+  A **positive edge** (0.34) suggests that age is positively associated with diabetes, even after adjusting for BMI and other variables.
 
-- **Age ↔ BP_sys (Systolic Blood Pressure)**  
-  A **positive conditional relationship** reflects the expected pattern: as age increases, systolic blood pressure tends to increase, consistent with physiological changes over time.
+- **BMI ↔ Diabetes**
+  A **positive edge** (0.20) indicates that BMI is conditionally associated with the presence of diabetes. This supports the well-established clinical link between higher body mass index and type 2 diabetes.
 
-- **BMI ↔ Sleep**  
-  A **weak negative edge** implies a minor inverse relationship between BMI and sleep duration. While small, this may hint at patterns where higher BMI is associated with slightly lower average sleep time.
+- **Sleep ↔ BMI**
+  A **weak negative edge** (-0.23) implies a minor inverse relationship between BMI and sleep duration. While small, this may hint at patterns where higher BMI is associated with slightly lower average sleep time.
 
-- **Gender**  
+- **Gender**
   Gender remains conditionally independent of the rest of the variables, as it is disconnected in the estimated graph.
 
-This model accounts for **missing data** via MCMC-based imputation and uses a **spike-and-slab prior** to identify sparse graphs, allowing meaningful discovery of variable interactions.
+This model accounts for **missing data** via MCMC-based imputation and uses a **spike-and-slab prior** to identify sparse graphs, allowing meaningful discovery of variable interactions. Gender and Diabetes are treated as categorical variables (type `"m"`) rather than count data, reflecting their true nature as binary categories.
 
 ## Summary
 

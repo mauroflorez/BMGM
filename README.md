@@ -33,9 +33,9 @@ fit$adj_G
 ## 📖 Main Functions
 
 -   `bmgm()`: Fit the Bayesian Mixed Graphical Model\
--   `find_lambda()`: Optimize transformation parameter (Arkaprava & Dunson, 2020)
--   `F_transformation()`: Apply transformation for mixed data
+-   `sampler_bmgm()`: Gibbs sampler for generating data from the model\
+-   `find_lambda()`: Optimize transformation parameter (Roy & Dunson, 2020)
 
 ## 📄 Reference
 
-Florez, M., Gottard, A., McAdams, C., Guindani, M., & Vannucci, M. (2025). *A Bayesian Approach for Inference on Mixed Graphical Models.* Revised at *Bayesian Analysis*. arXiv preprint available at: [arXiv:2505.15464](https://arxiv.org/abs/2505.15464)
+Florez, M., Gottard, A., McAdams, C., Guindani, M., & Vannucci, M. (2025). A Bayesian approach for inference on mixed graphical models. *Bayesian Analysis*, Advance Publication, 1–28. [https://doi.org/10.1214/25-BA1557](https://doi.org/10.1214/25-BA1557)

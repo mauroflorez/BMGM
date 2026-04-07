@@ -6,11 +6,12 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Bayesian Mixed Graphical model for Inference on Mixed Data • BMGM</title>
-<!-- favicons --><link rel="icon" type="image/png" sizes="48x48" href="favicon-48x48.png">
-<link rel="icon" type="”image/svg+xml”" href="favicon.svg">
-<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
-<link rel="icon" sizes="any" href="favicon.ico">
-<link rel="manifest" href="site.webmanifest">
+<!-- favicons --><link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+<link rel="apple-touch-icon" type="image/png" sizes="180x180" href="apple-touch-icon.png">
+<link rel="apple-touch-icon" type="image/png" sizes="120x120" href="apple-touch-icon-120x120.png">
+<link rel="apple-touch-icon" type="image/png" sizes="76x76" href="apple-touch-icon-76x76.png">
+<link rel="apple-touch-icon" type="image/png" sizes="60x60" href="apple-touch-icon-60x60.png">
 <!-- jquery --><script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.7.1/jquery.min.js" integrity="sha512-v2CJ7UaYy4JwqLDIrZUI/4hqeoQieOmAZNXBeQyjo21dadnwR+8ZaIJVT8EE2iyI61OV8e6M8PP2/4hpQINQ/g==" crossorigin="anonymous" referrerpolicy="no-referrer"></script><!-- Bootstrap --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.4.1/js/bootstrap.min.js" integrity="sha256-nuL8/2cJ5NDSSwnKD8VqreErSWHtnEP9E7AySL+1ev4=" crossorigin="anonymous"></script><!-- bootstrap-toc --><link rel="stylesheet" href="bootstrap-toc.css">
 <script src="bootstrap-toc.js"></script><!-- Font Awesome icons --><link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.12.1/css/all.min.css" integrity="sha256-mmgLkCYLUQbXn0B1SRqzHar6dCnv9oZFPEC1g1cwlkk=" crossorigin="anonymous">
@@ -24,7 +25,7 @@
 <![endif]-->
 </head>
 <body data-spy="scroll" data-target="#toc">
-
+    
 
     <div class="container template-home">
       <header><div class="navbar navbar-default navbar-fixed-top" role="navigation">
@@ -50,17 +51,27 @@
 <li class="dropdown">
   <a href="#" class="dropdown-toggle" data-toggle="dropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
     Articles
-
+     
     <span class="caret"></span>
   </a>
   <ul class="dropdown-menu" role="menu">
 <li>
       <a href="articles/Example_Analysis.html">Bayesian Mixed Graphical Model - Example</a>
     </li>
+    <li>
+      <a href="articles/introduction.html">Introduction to BMGM</a>
+    </li>
   </ul>
 </li>
       </ul>
-<ul class="nav navbar-nav navbar-right"></ul>
+<ul class="nav navbar-nav navbar-right">
+<li>
+  <a href="https://github.com/mauroflorez/BMGM/" class="external-link">
+    <span class="fab fa-github fa-lg"></span>
+     
+  </a>
+</li>
+      </ul>
 </div>
 <!--/.nav-collapse -->
   </div>
@@ -68,7 +79,7 @@
 </div>
 <!--/.navbar -->
 
-
+      
 
       </header><div class="row">
   <div class="contents col-md-9">
@@ -85,10 +96,15 @@
 <span><span class="fu">devtools</span><span class="fu">::</span><span class="fu"><a href="https://remotes.r-lib.org/reference/install_github.html" class="external-link">install_github</a></span><span class="op">(</span><span class="st">"mauroflorez/BMGM"</span><span class="op">)</span></span></code></pre></div>
 </div>
 <div class="section level2">
+<h2 id="example">Example<a class="anchor" aria-label="anchor" href="#example"></a>
+</h2>
+<p>For a more detailed example, see: <a href="https://mauroflorez.github.io/BMGM/articles/Example_Analysis.html" class="external-link uri">https://mauroflorez.github.io/BMGM/articles/Example_Analysis.html</a></p>
+</div>
+<div class="section level2">
 <h2 id="quick-start">Quick Start<a class="anchor" aria-label="anchor" href="#quick-start"></a>
 </h2>
 <div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va">BMGM</span><span class="op">)</span></span>
+<code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html" class="external-link">library</a></span><span class="op">(</span><span class="va"><a href="https://github.com/mauroflorez/BMGM" class="external-link">BMGM</a></span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/Random.html" class="external-link">set.seed</a></span><span class="op">(</span><span class="fl">123</span><span class="op">)</span></span>
 <span><span class="va">X</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">matrix</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/stats/Normal.html" class="external-link">rnorm</a></span><span class="op">(</span><span class="fl">200</span><span class="op">)</span>, ncol <span class="op">=</span> <span class="fl">4</span><span class="op">)</span></span>
@@ -105,21 +121,30 @@
 <code><a href="reference/bmgm.html">bmgm()</a></code>: Fit the Bayesian Mixed Graphical Model<br>
 </li>
 <li>
-<code><a href="reference/find_lambda.html">find_lambda()</a></code>: Optimize transformation parameter (Arkaprava &amp; Dunson, 2020)</li>
+<code><a href="reference/sampler_bmgm.html">sampler_bmgm()</a></code>: Gibbs sampler for generating data from the model<br>
+</li>
 <li>
-<code><a href="reference/F_transformation.html">F_transformation()</a></code>: Apply transformation for mixed data</li>
+<code><a href="reference/find_lambda.html">find_lambda()</a></code>: Optimize transformation parameter (Roy &amp; Dunson, 2020)</li>
 </ul>
 </div>
 <div class="section level2">
 <h2 id="page_facing_up-reference">📄 Reference<a class="anchor" aria-label="anchor" href="#page_facing_up-reference"></a>
 </h2>
-<p>Florez, M., Gottard, A., McAdams, C., Guindani, M., &amp; Vannucci, M. (2025). <em>A Bayesian Approach for Inference on Mixed Graphical Models.</em> Revised at <em>Bayesian Analysis</em>. arXiv preprint available at: <a href="https://arxiv.org/abs/2505.15464" class="external-link">arXiv:2505.15464</a></p>
+<p>Florez, M., Gottard, A., McAdams, C., Guindani, M., &amp; Vannucci, M. (2025). A Bayesian approach for inference on mixed graphical models. <em>Bayesian Analysis</em>, Advance Publication, 1–28. <a href="https://doi.org/10.1214/25-BA1557" class="external-link">https://doi.org/10.1214/25-BA1557</a></p>
 </div>
 </div>
   </div>
 
   <div class="col-md-3 hidden-xs hidden-sm" id="pkgdown-sidebar">
-    <div class="license">
+    <div class="links">
+<h2 data-toc-skip>Links</h2>
+<ul class="list-unstyled">
+<li><a href="https://github.com/mauroflorez/BMGM/" class="external-link">Browse source code</a></li>
+<li><a href="https://github.com/mauroflorez/BMGM/issues" class="external-link">Report a bug</a></li>
+</ul>
+</div>
+
+<div class="license">
 <h2 data-toc-skip>License</h2>
 <ul class="list-unstyled">
 <li><a href="https://www.r-project.org/Licenses/GPL-3" class="external-link">GPL-3</a></li>
@@ -137,7 +162,7 @@
 <div class="developers">
 <h2 data-toc-skip>Developers</h2>
 <ul class="list-unstyled">
-<li>Mauro Florez <br><small class="roles"> Author, maintainer </small>   </li>
+<li>Mauro Florez <br><small class="roles"> Author, maintainer </small>  </li>
 </ul>
 </div>
 
@@ -154,16 +179,16 @@
 
 <div class="pkgdown">
   <p></p>
-<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.1.3.</p>
+<p>Site built with <a href="https://pkgdown.r-lib.org/" class="external-link">pkgdown</a> 2.0.9.</p>
 </div>
 
       </footer>
 </div>
 
+  
 
 
-
-
+  
 
   </body>
 </html>

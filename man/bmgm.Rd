@@ -22,7 +22,9 @@ bmgm(
 )
 }
 \arguments{
-\item{X}{A numeric matrix or data frame containing the data (mixed type variables).}
+\item{X}{A numeric matrix or data frame containing the data (mixed type variables).
+Categorical variables (type "m") must be coded as positive integers (1, 2, ..., K),
+where K is the number of categories. Category 1 is used as the reference level.}
 
 \item{type}{A character vector indicating the type of each variable.
 Options: "c" (continuous), "d" (discrete), "z" (zero-inflated count), "m" (categorical).}

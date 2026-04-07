@@ -1,0 +1,132 @@
+---
+title: "Introduction to BMGM"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Introduction to BMGM}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+## Overview
+
+The **BMGM** package implements a Bayesian pairwise graphical model for estimating
+conditional independencies between variables of mixed types. It supports
+continuous, discrete (count), zero-inflated count, and categorical data within a
+single unified framework. The model uses a spike-and-slab prior for graph
+estimation and an MCMC algorithm for posterior inference. It can also handle
+missing data through built-in imputation during the estimation process.
+
+For full methodological details, see Florez, M., Gottard, A., McAdams, C.,
+Guindani, M., & Vannucci, M. (2025). A Bayesian approach for inference on mixed
+graphical models. *Bayesian Analysis*, Advance Publication, 1-28.
+[https://doi.org/10.1214/25-BA1557](https://doi.org/10.1214/25-BA1557)
+
+## Getting started
+
+```{r setup}
+library(BMGM)
+```
+
+### Simulating mixed data
+
+We begin by generating a simple dataset with four variables of different types:
+a discrete count variable (`X1`), two continuous variables (`X2`, `X3`) where
+`X3` depends on `X2`, and an independent categorical variable (`X4`) with four
+categories.
+
+```{r simulate}
+set.seed(123)
+n <- 200
+
+X1 <- rpois(n, lambda = 3)
+X2 <- rnorm(n, mean = 5)
+X3 <- rnorm(n, mean = X2)
+X4 <- sample(1:4, size = n, replace = TRUE)
+
+X <- cbind(X1, X2, X3, X4)
+```
+
+### Specifying variable types
+
+The `type` argument tells `bmgm()` how to treat each column. The options are:
+
+- `"c"` — continuous (Gaussian)
+- `"d"` — discrete (count)
+- `"z"` — zero-inflated count
+- `"m"` — categorical (multinomial)
+
+```{r types}
+type <- c("d", "c", "c", "m")
+```
+
+### Fitting the model
+
+We fit the Bayesian Mixed Graphical Model using `bmgm()`. The `nburn` argument
+controls the number of burn-in iterations, and `nsample` controls the number of
+posterior samples retained for inference.
+
+```{r fit, results='hide'}
+fit <- bmgm(X, type, nburn = 5000, nsample = 10000)
+```
+
+### Inspecting results
+
+Printing the fitted object gives a quick summary of the estimated graph:
+
+```{r print}
+fit
+```
+
+The model correctly identifies the edge between `X2` and `X3`, reflecting the
+dependence we built into the simulation. The independent variables (`X1` and
+`X4`) show no edges, as expected.
+
+### Adjacency matrix and edge weights
+
+The estimated adjacency matrix and edge weights are available as components of
+the fitted object:
+
+```{r adjacency}
+fit$adj_G
+```
+
+```{r weights}
+round(fit$adj_Beta, 3)
+```
+
+### Visualizing the graph
+
+The estimated graph can be visualized with the **qgraph** package:
+
+```{r plot, eval=FALSE}
+qgraph::qgraph(fit$adj_G, labels = colnames(X))
+```
+
+## Handling missing data
+
+BMGM can handle data with values missing at random. Simply include `NA` values
+in the data matrix:
+
+```{r missing, eval=FALSE}
+X_miss <- X
+X_miss[sample(1:n, 10), 2] <- NA
+X_miss[sample(1:n, 10), 3] <- NA
+
+fit_miss <- bmgm(X_miss, type, nburn = 5000, nsample = 10000)
+fit_miss
+```
+
+## Further reading
+
+- Florez, M., Gottard, A., McAdams, C., Guindani, M., & Vannucci, M. (2025).
+  A Bayesian approach for inference on mixed graphical models. *Bayesian
+  Analysis*, Advance Publication, 1-28.
+  [https://doi.org/10.1214/25-BA1557](https://doi.org/10.1214/25-BA1557)
+- Package source: <https://github.com/mauroflorez/BMGM>

@@ -6,7 +6,8 @@
 #' @export
 find_lambda <- function(X, type) {
   d <- which(type != "m")
-  X_d <- X[, d]
+  if(length(d) == 0) return(1)
+  X_d <- X[, d, drop = FALSE]
   p0 <- max(X_d, na.rm = TRUE)
   p_v <- seq(0, 2 * p0, by = 0.1)
 

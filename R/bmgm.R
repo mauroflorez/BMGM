@@ -81,6 +81,7 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
     }
   }
 
+  X <- as.matrix(X)
   X_input <- X
 
   n <- nrow(X)
@@ -473,8 +474,8 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
         mean = mu - C_s/tau
         mean_star = mu - C_star/tau
 
-        log_dif_llk <- sum(dnorm(X[,l], mean = mean_star, sd = sqrt(1/tau), log = TRUE)) -
-          sum(dnorm(X[,l], mean = mean, sd = sqrt(1/tau), log = TRUE))
+        log_dif_llk <- sum(dnorm(X[,var_names[l]], mean = mean_star, sd = sqrt(1/tau), log = TRUE)) -
+          sum(dnorm(X[,var_names[l]], mean = mean, sd = sqrt(1/tau), log = TRUE))
       } else {
         log_dif_llk <- sum(F_scaled[,l]*C_star) - sum(F_scaled[,l]*C_s)
       }

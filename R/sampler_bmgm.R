@@ -95,6 +95,9 @@ sampler_bmgm <- function(n = 1, Beta, theta, type, categories, lambda,
   if(missing(std)){
     std <- rep(1, k)
     ind = 1
+  } else {
+    std[is.na(std)] <- 1
+    std[std < 1e-10] <- 1
   }
 
   #Gibbs Sampler
@@ -111,7 +114,7 @@ sampler_bmgm <- function(n = 1, Beta, theta, type, categories, lambda,
       if(i == 1){
         aux <- c(x_sam[m-1, -l])
       } else if(i == p){
-        aux <- c(x_sam[m, -c(min(l),k)])
+        aux <- c(x_sam[m, -l])
       } else {
         aux <- c(x_sam[m, 1:(min(l)-1)], x_sam[m-1, (max(l)+1):k])
       }
@@ -119,7 +122,7 @@ sampler_bmgm <- function(n = 1, Beta, theta, type, categories, lambda,
       se <- std[l]
 
       edge_pot <- c((F_transformation(matrix(aux, nrow = 1),
-                                      type_k[-i], lambda)/std[-l])%*%Beta_ts)
+                                      type_k[-l], lambda)/std[-l])%*%Beta_ts)
 
       switch(type[i],
              c = {
@@ -165,10 +168,12 @@ sampler_bmgm <- function(n = 1, Beta, theta, type, categories, lambda,
                x_star <- rep(0, ncat - 1)
                edge_pot <- append(0, edge_pot) #Insert category base
                se <- append(1, se)
-               lik <- rep(0, ncat)
+               log_lik <- rep(0, ncat)
                for(c in 1:ncat){
-                 lik[c] <- exp(log(tta[c]) - edge_pot[c]/se[c])
+                 log_lik[c] <- log(pmax(tta[c], 1e-10)) - edge_pot[c]/se[c]
                }
+               log_lik <- log_lik - max(log_lik)
+               lik <- exp(log_lik)
                cat_sam <- sample(1:ncat, 1, prob = lik/sum(lik))
                x[m,i] <- cat_sam
                if(cat_sam > 1) x_star[cat_sam - 1] <- 1

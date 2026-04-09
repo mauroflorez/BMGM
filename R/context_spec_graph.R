@@ -19,15 +19,16 @@ context_spec_graph <- function(q, post_Bta, post_Z, tags, bfdr) {
   #FDR:
   post_inclusion <- colMeans(post_Z)
   fdr_c <- function(c){
-    E_fdr <- sum((1 - post_inclusion)*(post_inclusion > c))/(sum(post_inclusion > c) +
-                                                               rnorm(1, mean = 0, sd = 0.001))
+    n_edges <- sum(post_inclusion > c)
+    if(n_edges == 0) return(1.0)
+    E_fdr <- sum((1 - post_inclusion)*(post_inclusion > c)) / n_edges
     return(E_fdr)
   }
 
   pos_c <- seq(0, 1, by = 0.01)
   expected_fdr <- sapply(pos_c, fdr_c)
   pos <- pos_c[expected_fdr < bfdr]
-  cutoff <- min(pos)
+  cutoff <- if(length(pos) > 0) min(pos) else 1.0
 
   esti_Z[upper.tri(esti_Z)] <- colMeans(post_Z)
   esti_Z <- esti_Z + t(esti_Z)

@@ -56,13 +56,24 @@
 #'
 bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
                    v_0 = 0.05, v_1 = 1, pi_beta, seed, context_spec = TRUE,
-                   bfdr = 0.05, cont = FALSE, verbose = TRUE,...){
+                   bfdr = 0.05, B = 100, cont = FALSE, verbose = TRUE,...){
 
   if(!missing(seed)) set.seed(seed)
 
   if(missing(type)){
     stop("Error: type of variables is missing")
   }
+
+  # Input validation
+  if(nrow(X) == 0) stop("X has 0 rows.")
+  if(ncol(X) != length(type))
+    stop("ncol(X) = ", ncol(X), " but length(type) = ", length(type), ". They must match.")
+  if(any(!is.finite(X[!is.na(X)])))
+    stop("X contains Inf or -Inf values. Please remove or replace them.")
+  all_na_cols <- which(apply(X, 2, function(x) all(is.na(x))))
+  if(length(all_na_cols) > 0)
+    stop("Column(s) ", paste(all_na_cols, collapse = ", "), " are entirely NA.")
+  if(nburn < 0 || nsample < 0) stop("nburn and nsample must be non-negative.")
 
   valid_types <- c("c", "d", "z", "m")
   invalid <- setdiff(type, valid_types)
@@ -121,10 +132,13 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
   #Centering of continuous
   X[, type == "c"] <- scale(X[, type == "c"], center = means[type == "c"], scale = FALSE)
 
-  #Spike and slab
+  #Spike and slab (log-sum-exp trick to avoid underflow)
   log_prior_beta <- function(Beta, pi_beta, v0, v1){
-    sum(log(pi_beta*exp(dnorm(Beta, mean = 0, sd = v1, log = TRUE)) +
-              (1 - pi_beta)*exp(dnorm(Beta, mean = 0, sd = v0, log = TRUE))))
+    pi_beta <- pmax(pmin(pi_beta, 1 - 1e-10), 1e-10)
+    log_slab  <- log(pi_beta) + dnorm(Beta, mean = 0, sd = v1, log = TRUE)
+    log_spike <- log(1 - pi_beta) + dnorm(Beta, mean = 0, sd = v0, log = TRUE)
+    max_log <- pmax(log_slab, log_spike)
+    sum(max_log + log(exp(log_slab - max_log) + exp(log_spike - max_log)))
   }
 
   #Split categorical variables in columns (if any):
@@ -156,6 +170,7 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
 
   F_X <- F_transformation(X = X_design, type = type_q, parameter = lambda, cont)
   std_err <- apply(F_X, 2, sd)
+  std_err[std_err < 1e-10 | is.na(std_err)] <- 1
   F_scaled <- scale(F_X, center = FALSE, scale = std_err)
 
   #Beta
@@ -181,7 +196,9 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
 
   ##### Priors for Beta / Now as inputs
 
-  if(missing(pi_beta)) pi_beta <- 2/(q-1)
+  if(missing(pi_beta)) pi_beta <- min(2/(q-1), 0.99)
+  if(pi_beta <= 0 || pi_beta >= 1)
+    stop("pi_beta must be in (0, 1). Got: ", pi_beta)
 
   Beta <- diag(pdxid)
   G <- diag(q) - diag(q)
@@ -234,23 +251,25 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
   colnames(post_Beta) <- tag_Beta[upper.tri(tag_Beta)]
 
   log_norm_constant <- function(s, parameters){
-    domain <- 0:100
+    domain <- 0:B
     se <- std_err[s]
     un_llk_z <- function(x, theta)
       exp(theta[2]*(log(theta[1])*x - lfactorial(x)) - theta[3]*F_transformation(x, type = "d", lambda)/se)
 
-    log(apply(parameters, 1, function(x) sum(un_llk_z(domain, theta = x))))
+    log(apply(parameters, 1, function(x) max(sum(un_llk_z(domain, theta = x)), 1e-300)))
   }
 
   log_norm_constant_Z <- function(s, parameters){
-    domain <- 0:100
+    domain <- 0:B
     se <- std_err[s]
     un_llk <- function(x, theta){
       (theta[1]*(x == 0) + (1 - theta[1])*dpois(x, lambda = theta[2]))*
         exp(-theta[3]*F_transformation(x, type = "d", lambda)/se)
     }
-    log(apply(parameters, 1, function(x) sum(un_llk(domain, theta = x))))
+    log(apply(parameters, 1, function(x) max(sum(un_llk(domain, theta = x)), 1e-300)))
   }
+
+  imputation_failures <- 0
 
   if(verbose){
     pb <- progress::progress_bar$new(format = "Completing [:bar] :percent || ETA: :eta]",
@@ -263,6 +282,7 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
     for(s in 1:p){
       theta_s <- theta[[s]]
       h_theta_s <- h_theta[[s]]
+      cols_s <- which(var_names == s)
 
       #Proposal
       switch(type[s],
@@ -278,7 +298,7 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
                mean_post <- (tau0*mu0 + n*tao*mu)/var_post
 
                #adding norm. constant
-               C_s = sum(c(F_scaled[,-s]%*%Beta[s,-s]))
+               C_s = sum(c(F_scaled[,-cols_s, drop=FALSE]%*%Beta[cols_s,-cols_s]))
 
                mean_post <- mean_post - (1/var_post)*C_s
                theta_s[1] <- rnorm(1, mean = mean_post, sd = 1/sqrt(var_post))
@@ -295,7 +315,7 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
                shape_post = a0 + n/2
                rate_post = b0 + 0.5*sum((X[,s] - mu)^2)
 
-               C_s_2 = sum(c(F_scaled[,-s]%*%Beta[s,-s])^2)
+               C_s_2 = sum(c(F_scaled[,-cols_s, drop=FALSE]%*%Beta[cols_s,-cols_s])^2)
 
                ar <- dgamma(tau_proposal, shape = shape_post,rate = rate_post, log = TRUE) -
                  dgamma(tau, shape = shape_post, rate = rate_post, log = TRUE) +
@@ -313,13 +333,13 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
                theta_star <- abs(MASS::mvrnorm(n = 1, mu = c(theta_s[1], theta_s[2]),
                                                Sigma = h_theta_s))
 
-               C_s = c(F_scaled[,-s]%*%Beta[s,-s])
+               C_s = c(F_scaled[,-cols_s, drop=FALSE]%*%Beta[cols_s,-cols_s])
 
                param_s <- cbind('mu' = rep(theta_s[1], n), 'nu' = rep(theta_s[2], n), 'edge' = C_s)
                param_star <- cbind('mu' = rep(theta_star[1], n), 'nu' = rep(theta_star[2], n), 'edge' = C_s)
 
-               log_Z_s <- sum(log_norm_constant(s, param_s))
-               log_Z_star <- sum(log_norm_constant(s, param_star))
+               log_Z_s <- sum(log_norm_constant(cols_s, param_s))
+               log_Z_star <- sum(log_norm_constant(cols_s, param_star))
 
                log_density_d <- sum(theta_s[2]*(log(theta_s[1])*X[,s] - lfactorial(X[,s])))
                log_density_d_star <- sum(theta_star[2]*(log(theta_star[1])*X[,s] - lfactorial(X[,s])))
@@ -350,7 +370,7 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
                theta_star <- c(mnormt::rmtruncnorm(n = 1, mean = theta_s[1], varcov = h_theta_s[1,1], lower = 0, upper = 1),
                                abs(rnorm(n = 1, mean = theta_s[2], sd = h_theta_s[2,2])))
 
-               C_s <- c(F_scaled[,-s]%*%Beta[s,-s])
+               C_s <- c(F_scaled[,-cols_s, drop=FALSE]%*%Beta[cols_s,-cols_s])
 
                prior_values <- theta_priors[[s]]
                alpha0 <- prior_values[1] #assc with p
@@ -372,8 +392,8 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
                param_s <- cbind('pi' = rep(theta_s[1], n), 'mu' = rep(theta_s[2], n), 'edge' = C_s)
                param_star <- cbind('pi' = rep(theta_star[1], n), 'mu' = rep(theta_star[2], n), 'edge' = C_s)
 
-               log_Z_s <- sum(log_norm_constant_Z(s, param_s))
-               log_Z_star <- sum(log_norm_constant_Z(s, param_star))
+               log_Z_s <- sum(log_norm_constant_Z(cols_s, param_s))
+               log_Z_star <- sum(log_norm_constant_Z(cols_s, param_star))
 
                log_ar <- dbeta(theta_star[1], post_s1, post_s2, log = TRUE) - dbeta(theta_s[1], post_s1, post_s2, log = TRUE) +
                  dgamma(theta_star[2], post_alpha, post_beta, log = TRUE) - dgamma(theta_s[2], post_alpha, post_beta, log = TRUE) +
@@ -394,21 +414,31 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
                #edge-potentials
                cols = which(var_names == s)
                se <- std_err[cols]
-               C_s <- F_scaled[,-cols, drop = FALSE]%*%Beta[-cols, cols, drop = FALSE]
+               C_s <- F_scaled[,-cols, drop = FALSE]%*%Beta[-cols, cols]
+
+               theta_s <- pmax(theta_s, 1e-10)
+               theta_star <- pmax(theta_star, 1e-10)
 
                log_theta_mat <- matrix(log(theta_s[-1]), nrow = n, ncol = length(theta_s) - 1, byrow = TRUE)
                C_scaled <- sweep(C_s, 2, se, "/")
-               un_llk <- cbind(rep(theta_s[1], n), exp(log_theta_mat - C_scaled))
-               norm_consts <- rowSums(un_llk)
 
                log_theta_star_mat <- matrix(log(theta_star[-1]), nrow = n, ncol = length(theta_star) - 1, byrow = TRUE)
-               un_llk_star <- cbind(rep(theta_star[1], n), exp(log_theta_star_mat - C_scaled))
-               norm_consts_star <- rowSums(un_llk_star)
 
-               llk  <- un_llk[cbind(1:nrow(C_s), cat)]/norm_consts
-               llk_star  <- un_llk_star[cbind(1:nrow(C_s), cat)]/norm_consts
+               # Log-space computation to avoid underflow
+               log_un_llk <- cbind(log(theta_s[1]), log_theta_mat - C_scaled)
+               log_un_llk_star <- cbind(log(theta_star[1]), log_theta_star_mat - C_scaled)
 
-               log_dif_llk <- sum(log(llk_star) - log(llk))
+               # Vectorized log-sum-exp for normalizing constants
+               m_llk <- apply(log_un_llk, 1, max)
+               log_norm <- m_llk + log(rowSums(exp(log_un_llk - m_llk)))
+               m_llk_star <- apply(log_un_llk_star, 1, max)
+               log_norm_star <- m_llk_star + log(rowSums(exp(log_un_llk_star - m_llk_star)))
+
+               # Log-likelihood for observed categories
+               log_llk <- log_un_llk[cbind(1:n, cat)] - log_norm
+               log_llk_star <- log_un_llk_star[cbind(1:n, cat)] - log_norm_star
+
+               log_dif_llk <- sum(log_llk_star - log_llk)
 
                prior_s <- theta_priors[[s]]
                #priors
@@ -437,16 +467,19 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
     for(l in 1:q){
       theta_s <- theta[[var_names[l]]]
       mean <- S[l,-l] #mean
-      Omega <- Beta[-l, -l]
+      Omega <- Beta[-l, -l, drop=FALSE]
       diag(Omega) <- pmax(pdxid[-l], 1e-6)
       Omegai <- eigen(Omega)
-      OmegatempiU <- t(Omegai$vectors)/sqrt(abs(Omegai$values))
+      eig_vals <- pmax(Omegai$values, 1e-6)
+      OmegatempiU <- t(Omegai$vectors)/sqrt(eig_vals)
 
       #Update column l
       Omega_inv <- crossprod(OmegatempiU)
 
-      Ci <- eigen((S[l,l] + 1)*Omega_inv + diag(ifelse(G[l,-l] == 0, 1/v_0, 1/v_1)))
-      CiU <- t(Ci$vectors)/sqrt(abs(Ci$values))
+      prior_diag <- ifelse(G[l,-l] == 0, 1/v_0, 1/v_1)
+      Ci <- eigen((S[l,l] + 1)*Omega_inv + diag(prior_diag, nrow = length(prior_diag)))
+      eig_vals_ci <- pmax(Ci$values, 1e-6)
+      CiU <- t(Ci$vectors)/sqrt(eig_vals_ci)
       C_inv <- crossprod(CiU)
 
       #Proposal
@@ -464,8 +497,8 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
       Beta_star[-l, l] <- Beta_proposal
       Beta_star <- Beta_star*ind_noedge
 
-      C_s = c(F_scaled[,-l]%*%Beta[l,-l])
-      C_star = c(F_scaled[,-l]%*%Beta_proposal)
+      C_s = c(F_scaled[,-l, drop=FALSE]%*%Beta[l,-l])
+      C_star = c(F_scaled[,-l, drop=FALSE]%*%Beta_proposal)
 
       if(type[var_names[l]] == "c"){
         mu = theta_s[1]
@@ -495,8 +528,8 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
                                    'nu' = rep(theta_s[2], n),
                                    'edge' = C_star)
 
-               log_Z_s <- sum(log_norm_constant(s, param_s))
-               log_Z_star <- sum(log_norm_constant(s, param_star))
+               log_Z_s <- sum(log_norm_constant(l, param_s))
+               log_Z_star <- sum(log_norm_constant(l, param_star))
                log_dif_norm <- log_Z_s - log_Z_star
              },
              'c' = {
@@ -514,8 +547,8 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
                                    'mu' = rep(theta_s[2], n),
                                    'edge' = C_star)
 
-               log_Z_s <- sum(log_norm_constant_Z(s, param_s))
-               log_Z_star <- sum(log_norm_constant_Z(s, param_star))
+               log_Z_s <- sum(log_norm_constant_Z(l, param_s))
+               log_Z_star <- sum(log_norm_constant_Z(l, param_star))
                log_dif_norm <- log_Z_s - log_Z_star
              },
              'm' = {
@@ -526,8 +559,8 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
                #edge-potentials
                cols = which(var_names == s_m)
                se <- std_err[cols]
-               C_s <- F_scaled[,-cols, drop = FALSE]%*%Beta[-cols, cols, drop = FALSE]
-               C_star <- F_scaled[,-cols, drop = FALSE]%*%Beta_star[-cols, cols, drop = FALSE]
+               C_s <- F_scaled[,-cols, drop = FALSE]%*%Beta[-cols, cols]
+               C_star <- F_scaled[,-cols, drop = FALSE]%*%Beta_star[-cols, cols]
 
                log_theta_mat <- matrix(log(theta_s[-1]), nrow = n, ncol = length(theta_s) - 1, byrow = TRUE)
                un_llk <- cbind(rep(theta_s[1], n), exp(log_theta_mat - sweep(C_s, 2, se, "/")))
@@ -587,33 +620,60 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
         new_values <- sampler_bmgm(n = 10, Beta = Beta, theta = theta, type = type,
                                    categories = categories, lambda = lambda, std = std_err,
                                    X_new = X[i,], variables = c(1 - R[i,]))
-        new_values_mean <- colMeans(new_values)
+        new_values_mean <- colMeans(new_values, na.rm = TRUE)
 
-        # Default: use mean for all
-        X[i,] <- new_values_mean
+        # Only update missing variables where sampler succeeded
+        missing_vars <- which(R[i,] == 0)
+        valid_imputes <- missing_vars[!is.na(new_values_mean[missing_vars])]
+        if(length(valid_imputes) > 0){
+          X[i, valid_imputes] <- new_values_mean[valid_imputes]
+        }
+
+        # Track imputation failures
+        if(length(valid_imputes) < length(missing_vars)){
+          imputation_failures <- imputation_failures + 1
+          if(imputation_failures == 1){
+            warning("Imputation sampler produced NA values for some observations. ",
+                    "Falling back to previous imputed values. ",
+                    "This may indicate numerical instability.", immediate. = TRUE)
+          }
+        }
 
         # Now fix "m" type (categorical)
         for (j in 1:p) {
           if (type[j] == "m" && R[i, j] == 0) {
-            # Take the mode (most common category)
-            X[i, j] <- as.numeric(names(which.max(table(new_values[, j]))))
+            cat_vals <- new_values[!is.na(new_values[, j]), j]
+            if(length(cat_vals) > 0){
+              X[i, j] <- as.numeric(names(which.max(table(cat_vals))))
+            }
           }
         }
 
-        X[i, type %in% c("d", "z") & R[i,] == 0] <- round(X[i, type %in% c("d", "z") & R[i,] == 0])
+        # Round discrete/zero-inflated imputed values
+        dz_missing <- which(type %in% c("d", "z") & R[i,] == 0)
+        if(length(dz_missing) > 0 && !any(is.na(X[i, dz_missing]))){
+          X[i, dz_missing] <- round(X[i, dz_missing])
+        }
       }
       post_imputation[[m/m_update]] <- X
 
-      split <- split_X_cat(X, type)
+      split <- split_X_cat(X, type, categories)
       X_design <- split$matrix
       lambda <- find_lambda(X, type)
 
       F_X <- F_transformation(X = X_design, type = type_q, parameter = lambda, cont)
 
       std_err <- apply(F_X, 2, sd)
+      std_err[std_err < 1e-10 | is.na(std_err)] <- 1
       F_scaled <- scale(F_X, center = FALSE, scale = std_err)
     }
     if(verbose) pb$tick()
+  }
+
+  if(imputation_failures > 0){
+    warning("Imputation sampler failed for ", imputation_failures,
+            " observation(s) across MCMC iterations. Consider checking for ",
+            "near-constant variables or extreme values in the data.")
   }
 
   ce_graph <- context_spec_graph(q, post_Beta, post_G, tag, bfdr)

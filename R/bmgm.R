@@ -19,6 +19,8 @@
 #' @param seed Random seed for reproducibility.
 #' @param context_spec Logical, whether to compute the context-specific adjacency matrix. Default is TRUE.
 #' @param bfdr Bayesian False Discovery Rate threshold for edge selection. Default is 0.05.
+#' @param B Upper bound for the normalizing constant domain in discrete and zero-inflated
+#'        distributions. Default is 100, as recommended in Florez et al. (2025).
 #' @param cont Logical, whether to transform continuous variables. Default is FALSE.
 #' @param verbose Logical, whether to display a progress bar during MCMC sampling. Default is TRUE.
 #' @param ... Additional arguments.

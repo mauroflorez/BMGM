@@ -1,7 +1,7 @@
 Package: BMGM
 Type: Package
 Title: Bayesian Mixed Graphical model for Inference on Mixed Data
-Version: 0.1.0
+Version: 0.1.1
 Authors@R: c(
     person(
       "Mauro", "Florez",

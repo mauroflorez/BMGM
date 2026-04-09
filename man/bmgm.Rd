@@ -16,6 +16,7 @@ bmgm(
   seed,
   context_spec = TRUE,
   bfdr = 0.05,
+  B = 100,
   cont = FALSE,
   verbose = TRUE,
   ...
@@ -46,6 +47,9 @@ Options: "c" (continuous), "d" (discrete), "z" (zero-inflated count), "m" (categ
 \item{context_spec}{Logical, whether to compute the context-specific adjacency matrix. Default is TRUE.}
 
 \item{bfdr}{Bayesian False Discovery Rate threshold for edge selection. Default is 0.05.}
+
+\item{B}{Upper bound for the normalizing constant domain in discrete and zero-inflated
+distributions. Default is 100, as recommended in Florez et al. (2025).}
 
 \item{cont}{Logical, whether to transform continuous variables. Default is FALSE.}
 

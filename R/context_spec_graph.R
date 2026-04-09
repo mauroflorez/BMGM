@@ -39,5 +39,13 @@ context_spec_graph <- function(q, post_Bta, post_Z, tags, bfdr) {
 
   esti_Beta <- esti_Beta*esti_Z
 
-  return(list(ce_esti_Beta = esti_Beta, ce_esti_Z = esti_Z))
+  # Build full inclusion probability matrix (q x q)
+  incl_prob <- matrix(0, nrow = q, ncol = q)
+  incl_prob[upper.tri(incl_prob)] <- post_inclusion
+  incl_prob <- incl_prob + t(incl_prob)
+  colnames(incl_prob) <- tags
+  rownames(incl_prob) <- tags
+
+  return(list(ce_esti_Beta = esti_Beta, ce_esti_Z = esti_Z,
+              inclusion_probs = incl_prob, bfdr_cutoff = cutoff))
 }

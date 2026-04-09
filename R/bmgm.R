@@ -683,14 +683,29 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
   cat_graph <- categories_graph(q, p, var_names, ce_graph$ce_esti_Z,
                                 ce_graph$ce_esti_Beta, categories)
 
+  # Collapse inclusion probabilities to variable space (p x p)
+  incl_prob_collapsed <- matrix(0, nrow = p, ncol = p)
+  incl_ce <- ce_graph$inclusion_probs
+  for(s in 1:p){
+    cols_s <- which(var_names == s)
+    for(r in 1:p){
+      cols_r <- which(var_names == r)
+      if(s != r){
+        incl_prob_collapsed[s, r] <- max(incl_ce[cols_s, cols_r])
+      }
+    }
+  }
+
   fit <- list(post_Beta = -post_Beta, post_theta = post_theta, post_G = post_G,
               adj_Beta = -cat_graph$Adj_Beta, adj_G = (cat_graph$Adj_Z!=0)*1,
+              inclusion_probs = incl_prob_collapsed, bfdr_cutoff = ce_graph$bfdr_cutoff,
               lambda = lambda, std = std_err, X = X_input, type = type,
               nburn = nburn, nsample = nsample)
 
   if(context_spec == TRUE && any(type == "m")){
-    fit[["adj_Beta_ce"]] <- ce_graph$ce_esti_Beta
+    fit[["adj_Beta_ce"]] <- -ce_graph$ce_esti_Beta
     fit[["adj_Z_ce"]] <- ce_graph$ce_esti_Z
+    fit[["inclusion_probs_ce"]] <- ce_graph$inclusion_probs
   }
 
   class(fit) <- "bmgm"

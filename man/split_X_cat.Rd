@@ -4,7 +4,7 @@
 \alias{split_X_cat}
 \title{Split Categorical Variables}
 \usage{
-split_X_cat(X, type)
+split_X_cat(X, type, categories = NULL)
 }
 \arguments{
 \item{X}{Input matrix}

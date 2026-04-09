@@ -38,6 +38,11 @@ print.bmgm <- function(x, ...) {
 
   cat("\nUse $adj_G for the full adjacency matrix.\n")
   cat("Use $adj_Beta for estimated edge weights.\n")
+  cat("Use $inclusion_probs for posterior edge inclusion probabilities.\n")
+  cat("Use $bfdr_cutoff for the BFDR threshold used.\n")
+  if (!is.null(x$adj_Beta_ce)) {
+    cat("Use $adj_Beta_ce for context-specific (category-level) edge weights.\n")
+  }
 
   invisible(x)
 }

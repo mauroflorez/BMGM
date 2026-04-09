@@ -6,7 +6,7 @@
 \usage{
 \method{plot}{bmgm}(
   x,
-  mode = c("weights", "inclusion"),
+  mode = c("weights", "inclusion", "context"),
   layout = "circle",
   labels = NULL,
   ...
@@ -19,7 +19,9 @@
 (default) displays signed edge weights from \code{adj_Beta}, with edges
 involving categorical variables shown in grey. \code{"inclusion"} displays
 posterior edge inclusion probabilities, with the BFDR cutoff shown in the
-title.}
+title. \code{"context"} displays the context-specific graph where each
+category of a multinomial variable is shown as a separate node, with
+signed edges (green/red) at the category level.}
 
 \item{layout}{Character string specifying the graph layout. Default is
 \code{"circle"}. See \code{\link[qgraph]{qgraph}} for options.}
@@ -34,8 +36,8 @@ Invisibly returns the qgraph object.
 }
 \description{
 Visualizes the estimated graphical model using \pkg{qgraph}.
-Two display modes are available: edge weights (default) and edge inclusion
-probabilities.
+Three display modes are available: edge weights (default), edge inclusion
+probabilities, and context-specific graph.
 }
 \details{
 In \code{"weights"} mode, positive edges are shown in green and negative
@@ -51,6 +53,13 @@ returned in \code{fit$adj_Beta_ce}.
 In \code{"inclusion"} mode, edges are shown in blue with width proportional
 to the inclusion probability. Only edges present in the selected graph
 (i.e., those that passed the BFDR threshold) are displayed.
+
+In \code{"context"} mode, the context-specific graph is displayed where
+each category of a multinomial variable gets its own node (e.g., Group.2,
+Group.3 for a 3-category variable, where category 1 is the reference).
+This allows inspection of signed category-level effects that are hidden
+by the grey edges in the default weights mode. Only available when the
+model includes categorical variables.
 }
 \examples{
 \donttest{

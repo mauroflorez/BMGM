@@ -160,7 +160,7 @@ bmgm <- function(X, type, nburn = 1000, nsample = 1000, theta_priors,
   tags <- get_names_graph(p, q, categories, var_names)
 
   #Get the subnames for categorical nodes
-  tag <- tags$tag_nodes
+  tag <- tags$tags
   #Get the names for the edges
   tag_Beta <- tags$tag_Beta
   #Get the indicators where there are no edges (among sub-categories)

@@ -1,15 +1,17 @@
 #' Plot Method for BMGM Objects
 #'
 #' @description Visualizes the estimated graphical model using \pkg{qgraph}.
-#' Two display modes are available: edge weights (default) and edge inclusion
-#' probabilities.
+#' Three display modes are available: edge weights (default), edge inclusion
+#' probabilities, and context-specific graph.
 #'
 #' @param x A bmgm object returned by \code{\link{bmgm}}.
 #' @param mode Character string specifying the plot type. \code{"weights"}
 #'   (default) displays signed edge weights from \code{adj_Beta}, with edges
 #'   involving categorical variables shown in grey. \code{"inclusion"} displays
 #'   posterior edge inclusion probabilities, with the BFDR cutoff shown in the
-#'   title.
+#'   title. \code{"context"} displays the context-specific graph where each
+#'   category of a multinomial variable is shown as a separate node, with
+#'   signed edges (green/red) at the category level.
 #' @param layout Character string specifying the graph layout. Default is
 #'   \code{"circle"}. See \code{\link[qgraph]{qgraph}} for options.
 #' @param labels Optional character vector of node labels. Defaults to column
@@ -33,6 +35,13 @@
 #' to the inclusion probability. Only edges present in the selected graph
 #' (i.e., those that passed the BFDR threshold) are displayed.
 #'
+#' In \code{"context"} mode, the context-specific graph is displayed where
+#' each category of a multinomial variable gets its own node (e.g., Group.2,
+#' Group.3 for a 3-category variable, where category 1 is the reference).
+#' This allows inspection of signed category-level effects that are hidden
+#' by the grey edges in the default weights mode. Only available when the
+#' model includes categorical variables.
+#'
 #' @export
 #'
 #' @examples
@@ -46,7 +55,7 @@
 #' plot(fit)                    # Edge weights (default)
 #' plot(fit, mode = "inclusion") # Inclusion probabilities
 #' }
-plot.bmgm <- function(x, mode = c("weights", "inclusion"), layout = "circle",
+plot.bmgm <- function(x, mode = c("weights", "inclusion", "context"), layout = "circle",
                        labels = NULL, ...) {
 
   if (!requireNamespace("qgraph", quietly = TRUE)) {
@@ -169,6 +178,138 @@ plot.bmgm <- function(x, mode = c("weights", "inclusion"), layout = "circle",
         y_pos <- y_pos - 0.07
       }
     }
+
+    # Hint about context-specific mode if categoricals are present
+    if (any(type == "m")) {
+      message("Note: Grey edges involve categorical variables (sign is ambiguous). ",
+              "Use plot(fit, mode = \"context\") to see category-level signed effects.")
+    }
+
+  } else if (mode == "context") {
+    # Context-specific mode: q x q graph with category-level nodes
+    adj_ce <- x$adj_Beta_ce
+    adj_Z_ce <- x$adj_Z_ce
+
+    if (is.null(adj_ce) || is.null(adj_Z_ce)) {
+      stop("Context-specific graph not available. Requires categorical variables and context_spec = TRUE.")
+    }
+
+    q <- ncol(adj_ce)
+
+    # Use the tag names on adj_Beta_ce, or rebuild if missing
+    ce_tags <- colnames(adj_ce)
+    if (is.null(ce_tags)) {
+      # Rebuild tags from type info
+      categories <- sapply(1:p, function(s) {
+        if (type[s] == "m") length(unique(x$X[!is.na(x$X[,s]), s])) else 1
+      })
+      ce_tags <- c()
+      for (s in 1:p) {
+        if (categories[s] == 1) {
+          ce_tags <- c(ce_tags, paste0(s))
+        } else {
+          ce_tags <- c(ce_tags, paste0(s, "_", 1:categories[s]))
+        }
+      }
+      if (length(ce_tags) != q) {
+        stop("Cannot determine node labels for context-specific graph. Dimension mismatch.")
+      }
+    }
+
+    cn <- colnames(x$X)
+    if (is.null(cn) || all(cn == "") || all(is.na(cn))) {
+      cn <- paste0("X", 1:p)
+    } else {
+      blank <- cn == "" | is.na(cn)
+      cn[blank] <- paste0("X", which(blank))
+    }
+
+    # Map tags to readable labels: "3_2" -> "VarName.2"
+    ce_labels <- sapply(ce_tags, function(tg) {
+      parts <- strsplit(tg, "_")[[1]]
+      var_idx <- as.integer(parts[1])
+      if (length(parts) == 1) {
+        cn[var_idx]
+      } else {
+        paste0(cn[var_idx], ".", parts[2])
+      }
+    }, USE.NAMES = FALSE)
+
+    # Node shapes and colors
+    ce_node_colors <- rep("white", q)
+    ce_node_shapes <- character(q)
+    for (k in seq_along(ce_tags)) {
+      var_idx <- as.integer(strsplit(ce_tags[k], "_")[[1]][1])
+      ce_node_shapes[k] <- unname(type_shapes[type[var_idx]])
+    }
+
+    # Build edge colors: green/red based on sign
+    adj_ce_display <- adj_ce * (adj_Z_ce != 0)
+    edge_colors_ce <- matrix("#FFFFFF", q, q)
+    for (i in 1:q) {
+      for (j in 1:q) {
+        if (adj_Z_ce[i, j] != 0) {
+          if (adj_ce[i, j] > 0) {
+            edge_colors_ce[i, j] <- "#2CA02C"
+          } else {
+            edge_colors_ce[i, j] <- "#D62728"
+          }
+        }
+      }
+    }
+
+    # Layout with legend
+    old_par <- graphics::par(no.readonly = TRUE)
+    on.exit(graphics::par(old_par))
+    graphics::layout(matrix(c(1, 2), nrow = 1), widths = c(5, 1.5))
+
+    graph <- qgraph::qgraph(
+      abs(adj_ce_display),
+      layout = layout,
+      labels = ce_labels,
+      edge.color = edge_colors_ce,
+      color = ce_node_colors,
+      shape = ce_node_shapes,
+      title = "BMGM \u2014 Context-Specific Graph",
+      ...
+    )
+
+    # Draw legend
+    graphics::par(mar = c(2, 0, 2, 0.5))
+    graphics::plot.new()
+    graphics::plot.window(xlim = c(0, 1), ylim = c(0, 1))
+
+    y_start <- 0.92
+    graphics::text(0.5, y_start, "Edge sign", font = 2, cex = 0.9, adj = 0.5)
+
+    graphics::segments(0.05, y_start - 0.07, 0.25, y_start - 0.07, col = "#2CA02C", lwd = 2.5)
+    graphics::text(0.32, y_start - 0.07, "Positive", cex = 0.8, adj = 0)
+
+    graphics::segments(0.05, y_start - 0.14, 0.25, y_start - 0.14, col = "#D62728", lwd = 2.5)
+    graphics::text(0.32, y_start - 0.14, "Negative", cex = 0.8, adj = 0)
+
+    y_shapes <- y_start - 0.28
+    graphics::text(0.5, y_shapes, "Variable type", font = 2, cex = 0.9, adj = 0.5)
+
+    shape_info <- list(
+      c = list(label = "Continuous", pch = 21),
+      d = list(label = "Discrete", pch = 22),
+      z = list(label = "Zero-inflated", pch = 23),
+      m = list(label = "Categorical", pch = 24)
+    )
+
+    y_pos <- y_shapes - 0.07
+    for (tp in c("c", "d", "z", "m")) {
+      if (any(type == tp)) {
+        graphics::points(0.15, y_pos, pch = shape_info[[tp]]$pch, cex = 1.8,
+                         bg = "white", col = "black", lwd = 1.5)
+        graphics::text(0.32, y_pos, shape_info[[tp]]$label, cex = 0.8, adj = 0)
+        y_pos <- y_pos - 0.07
+      }
+    }
+
+    graphics::text(0.5, y_pos - 0.05, "Cat. nodes show\nindividual levels\n(e.g., Group.2)",
+                   cex = 0.7, adj = 0.5, font = 3)
 
   } else {
     # Inclusion probability mode

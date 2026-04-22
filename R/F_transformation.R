@@ -10,7 +10,7 @@
 #' @param cont Logical. If TRUE, continuous variables are transformed. Default is FALSE.
 #'
 #' @return A matrix of transformed data.
-#' @keywords internal
+#' @export
 F_transformation <- function(X, type, parameter, cont = FALSE){
   X_t <- X
   transform <- function(x, typ, param){

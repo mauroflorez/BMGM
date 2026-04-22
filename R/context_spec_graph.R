@@ -6,7 +6,7 @@
 #' @param tags Variable names
 #' @param bfdr Bayesian False Discovery Rate
 #' @return Estimated graph
-#' @keywords internal
+#' @export
 context_spec_graph <- function(q, post_Bta, post_Z, tags, bfdr) {
   esti_Beta <- matrix(rep(0, q*q), nrow = q, ncol = q)
   esti_Beta[upper.tri(esti_Beta)] <- colMeans(post_Bta)

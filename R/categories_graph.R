@@ -13,7 +13,7 @@
 #' @return A list with:
 #' \item{Adj_Beta}{Estimated adjacency matrix for Beta}
 #' \item{Adj_Z}{Estimated adjacency matrix for Z}
-#' @keywords internal
+#' @export
 categories_graph <- function(q, p, var_names, esti_Z, esti_Beta, categories){
   esti_Z_gen <- matrix(nrow = q, ncol = p)
   diag(esti_Z_gen) <- 0
